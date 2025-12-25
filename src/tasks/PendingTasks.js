@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,37 +9,105 @@ import {
   TouchableOpacity,
   TextInput,
   SafeAreaView,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { apiClient } from "../lib/api-client";
 
-const mockWorkOrders = [
-  {
-    id: "17",
-    type: "Corporate",
-    address: "123 Main Street, Suite 200, Anytown, USA 12345",
-    status: "pending",
-  },
-  {
-    id: "18",
-    type: "Industrial",
-    address: "45 Industrial Drive, Building B, Industrial City, USA 67890",
-    status: "pending",
-  },
-  {
-    id: "20",
-    type: "Retail",
-    address: "789 Market Avenue, Store 10, Downtown, USA 54321",
-    status: "pending",
-  },
-];
 
 export default function PendingTasks({ navigation }) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const filteredOrders = mockWorkOrders.filter(
+  // Fetch orders by getting order IDs from tasks stored in local storage
+  useEffect(() => {
+    const fetchOrdersFromTasks = async () => {
+      try {
+        setLoading(true);
+
+        // Get tasks from local storage
+        const storedTasks = await AsyncStorage.getItem("tasks");
+        console.log("Stored tasks data:", storedTasks);
+
+        if (!storedTasks) {
+          setError("No tasks found");
+          setLoading(false);
+          return;
+        }
+
+        const tasks = JSON.parse(storedTasks);
+        console.log("Parsed tasks:", tasks);
+
+        if (!Array.isArray(tasks) || tasks.length === 0) {
+          setError("No tasks available");
+          setLoading(false);
+          return;
+        }
+
+        // Extract unique order IDs from tasks
+        const orderIds = [...new Set(
+          tasks
+            .map(task => task.order.id || task.order_id)
+            .filter(id => id != null)
+        )];
+
+        console.log("Extracted order IDs:", orderIds);
+
+        if (orderIds.length === 0) {
+          setError("No order IDs found in tasks");
+          setLoading(false);
+          return;
+        }
+
+        // Fetch each order by ID
+        const fetchedOrders = [];
+        for (const orderId of orderIds) {
+          try {
+            console.log("Fetching order with ID:", orderId);
+            const response = await apiClient.getOrderById(orderId);
+            console.log("Fetched order response:", response);
+
+            // Extract the actual order data from the response
+            const orderData = response?.order || response;
+            console.log("Extracted order data:", orderData);
+
+            if (orderData) {
+              fetchedOrders.push(orderData);
+            }
+          } catch (orderErr) {
+            console.error("Error fetching order with ID", orderId, ":", orderErr);
+          }
+        }
+
+        console.log("All fetched orders:", fetchedOrders);
+        console.log("Total orders fetched:", fetchedOrders.length);
+
+        if (fetchedOrders.length === 0) {
+          setError("Could not fetch any orders");
+          setOrders([]);
+        } else {
+          setOrders(fetchedOrders);
+          setError(null);
+        }
+      } catch (err) {
+        console.error("Error fetching orders from tasks:", err);
+        setError(err.message || "Failed to load orders");
+        setOrders([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrdersFromTasks();
+  }, []);
+
+  const filteredOrders = orders.filter(
     (order) =>
-      order.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.type.toLowerCase().includes(searchQuery.toLowerCase())
+      (order.description || order.address || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (order.title || "").toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const renderWorkOrder = ({ item }) => (
@@ -50,15 +118,16 @@ export default function PendingTasks({ navigation }) {
       }
     >
       <View style={styles.cardHeader}>
-        <Text style={styles.workOrderNumber}>#{item.id}</Text>
+        {/* <Text style={styles.workOrderNumber}>#{item._id ? item._id.substring(0, 8) : item.id}</Text> */}
+        <Text style={styles.workOrderNumber}>{item.title}</Text>
         <View style={styles.statusBadge}>
           <Text style={styles.statusText}>{item.status}</Text>
         </View>
       </View>
-      <Text style={styles.workOrderType}>{item.type}</Text>
+      <Text style={styles.workOrderType}>{item.order_number}</Text>
       <View style={styles.addressContainer}>
-        <Ionicons name="location-outline" size={16} color="#6b7280" />
-        <Text style={styles.address}>{item.address}</Text>
+        {/* <Ionicons name="location-outline" size={16} color="#6b7280" /> */}
+        <Text style={styles.address}>{item.customer.name}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -77,18 +146,43 @@ export default function PendingTasks({ navigation }) {
         />
       </View>
 
-      <Text style={styles.sectionTitle}>Pending Workorders</Text>
+      <Text style={styles.sectionTitle}>All Workorders</Text>
 
-      <FlatList
-        onPress={() => {
-          navigation.navigate("WorkOrderDetail", { workOrderId: item.id });
-        }}
-        data={filteredOrders}
-        renderItem={renderWorkOrder}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-        scrollEnabled={true}
-      />
+      {/* Debug Info */}
+      <View style={{ paddingHorizontal: 16, marginVertical: 8 }}>
+        <Text style={{ fontSize: 12, color: "#6b7280" }}>
+          Orders: {orders.length} | Filtered: {filteredOrders.length} | Loading: {loading ? 'Yes' : 'No'} | Error: {error ? 'Yes' : 'No'}
+        </Text>
+      </View>
+
+      {loading ? (
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color="#2563eb" />
+          <Text style={styles.loaderText}>Loading orders...</Text>
+        </View>
+      ) : error ? (
+        <View style={styles.errorContainer}>
+          <Ionicons name="alert-circle-outline" size={40} color="#ef4444" />
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      ) : filteredOrders && filteredOrders.length > 0 ? (
+        <View style={{ flex: 1 }}>
+          <FlatList
+            data={filteredOrders}
+            renderItem={renderWorkOrder}
+            keyExtractor={(item, index) => (item._id || item.id || index).toString()}
+            contentContainerStyle={styles.listContent}
+            scrollEnabled={true}
+          />
+        </View>
+      ) : (
+        <View style={styles.emptyContainer}>
+          <Ionicons name="briefcase-outline" size={40} color="#d1d5db" />
+          <Text style={styles.emptyText}>
+            {searchQuery ? "No orders match your search" : "No orders found"}
+          </Text>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -181,5 +275,41 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 12,
     color: "#6b7280",
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 40,
+  },
+  loaderText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: "#6b7280",
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 40,
+  },
+  errorText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: "#ef4444",
+    textAlign: "center",
+    paddingHorizontal: 16,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 40,
+  },
+  emptyText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: "#6b7280",
+    textAlign: "center",
   },
 });
