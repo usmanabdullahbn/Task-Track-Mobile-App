@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import {
   View,
   Text,
@@ -9,12 +9,8 @@ import {
   TouchableOpacity,
   SafeAreaView,
   FlatList,
-  ActivityIndicator,
-  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { apiClient } from "../lib/api-client";
 
 export default function WorkOrderDetail({ route, navigation }) {
   const workOrder = route?.params?.workOrder || {
@@ -25,37 +21,11 @@ export default function WorkOrderDetail({ route, navigation }) {
 
   const [isSigned, setIsSigned] = useState(false);
   const signaturePadRef = useRef(null);
-  const [orderDetails, setOrderDetails] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  // Fetch specific order by ID on component mount
-  useEffect(() => {
-    const fetchOrderDetails = async () => {
-      try {
-        setLoading(true);
-        const orderId = workOrder?.id || route?.params?.orderId;
-
-        if (!orderId) {
-          setError("Order ID not found");
-          setLoading(false);
-          return;
-        }
-
-        const order = await apiClient.getOrderById(orderId);
-        setOrderDetails(order);
-        setError(null);
-      } catch (err) {
-        console.error("Error fetching order details:", err);
-        setError(err.message || "Failed to load order");
-        setOrderDetails(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchOrderDetails();
-  }, [workOrder?.id, route?.params?.orderId]);
+  const assets = [
+    { id: 1, name: "Switch", status: "Pending" },
+    { id: 2, name: "Panel", status: "Pending" },
+  ];
 
   const handleClearSignature = () => {
     setIsSigned(false);
@@ -67,23 +37,23 @@ export default function WorkOrderDetail({ route, navigation }) {
 
   const handleCompleteWorkorder = () => {
     alert("Workorder completed!");
-    navigation.navigate("Home", { screen: "HomeMain" })
+    navigation.navigate("Home", { screen: "HomeMain" });
   };
 
-  const renderOrderItem = ({ item }) => (
+  const renderAssetItem = ({ item }) => (
     <TouchableOpacity
       style={styles.assetCard}
       onPress={() =>
-        navigation.navigate("Tasks", { screen: "TaskDetail" }, { item })
+        navigation.navigate("Tasks", { screen: "TaskVerification" })
       }
     >
       <View style={styles.assetLeft}>
-        <Text style={styles.assetNumber}>{item._id ? item._id.substring(0, 8) : item.id} #</Text>
-        <Text style={styles.assetName}>{item.title || item.description || "Order"}</Text>
+        <Text style={styles.assetNumber}>{item.id} #</Text>
+        <Text style={styles.assetName}>{item.name}</Text>
       </View>
       <View style={styles.assetRight}>
         <View style={styles.assetStatus}>
-          <Text style={styles.statusBadgeText}>{item.status || "Pending"}</Text>
+          <Text style={styles.statusBadgeText}>{item.status}</Text>
         </View>
         <Ionicons name="chevron-forward" size={20} color="#2563eb" />
       </View>
@@ -102,50 +72,28 @@ export default function WorkOrderDetail({ route, navigation }) {
 
         <View style={styles.workOrderInfo}>
           <Text style={styles.workOrderTitle}>
-            Order Details # {orderDetails?._id ? orderDetails._id.substring(0, 8) : workOrder.id}
+            Asset against WorkOrder # {workOrder.id}
           </Text>
 
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Title:</Text>
-            <Text style={styles.infoValue}>{orderDetails?.title || "N/A"}</Text>
+            <Text style={styles.infoLabel}>Customer:</Text>
+            <Text style={styles.infoValue}>123:</Text>
           </View>
 
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Status:</Text>
-            <Text style={styles.infoValue}>{orderDetails?.status || "Pending"}</Text>
-          </View>
-
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Description:</Text>
-            <Text style={styles.infoValue}>{orderDetails?.description || workOrder.address}</Text>
+            <Text style={styles.infoLabel}>Project:</Text>
+            <Text style={styles.infoValue}>{workOrder.address}</Text>
           </View>
         </View>
 
-        {/* Assets/Tasks List */}
+        {/* Assets List */}
         <View style={styles.assetsSection}>
-          {loading ? (
-            <View style={styles.loaderContainer}>
-              <ActivityIndicator size="large" color="#2563eb" />
-              <Text style={styles.loaderText}>Loading order details...</Text>
-            </View>
-          ) : error ? (
-            <View style={styles.errorContainer}>
-              <Ionicons name="alert-circle-outline" size={40} color="#ef4444" />
-              <Text style={styles.errorText}>{error}</Text>
-            </View>
-          ) : orderDetails?.assets && orderDetails.assets.length > 0 ? (
-            <FlatList
-              data={orderDetails.assets}
-              renderItem={renderOrderItem}
-              keyExtractor={(item) => item._id || item.id}
-              scrollEnabled={false}
-            />
-          ) : (
-            <View style={styles.emptyContainer}>
-              <Ionicons name="briefcase-outline" size={40} color="#d1d5db" />
-              <Text style={styles.emptyText}>No assets found for this order</Text>
-            </View>
-          )}
+          <FlatList
+            data={assets}
+            renderItem={renderAssetItem}
+            keyExtractor={(item) => item.id.toString()}
+            scrollEnabled={false}
+          />
         </View>
 
         {/* Signature Section */}
@@ -363,36 +311,5 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "700",
     color: "#fff",
-  },
-  loaderContainer: {
-    paddingVertical: 40,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  loaderText: {
-    marginTop: 12,
-    fontSize: 14,
-    color: "#6b7280",
-  },
-  errorContainer: {
-    paddingVertical: 40,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  errorText: {
-    marginTop: 12,
-    fontSize: 14,
-    color: "#ef4444",
-    textAlign: "center",
-  },
-  emptyContainer: {
-    paddingVertical: 40,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  emptyText: {
-    marginTop: 12,
-    fontSize: 14,
-    color: "#6b7280",
   },
 });

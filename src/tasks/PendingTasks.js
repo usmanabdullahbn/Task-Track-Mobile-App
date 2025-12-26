@@ -114,7 +114,7 @@ export default function PendingTasks({ navigation }) {
     <TouchableOpacity
       style={styles.workOrderCard}
       onPress={() =>
-        navigation.navigate("WorkOrderDetail", { workOrder: item })
+        navigation.navigate("TaskDetail", { item })
       }
     >
       <View style={styles.cardHeader}>

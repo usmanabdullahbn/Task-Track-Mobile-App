@@ -16,7 +16,7 @@ export default function TaskDetail({ route, navigation }) {
   ];
 
   const handleTaskPress = (task) => {
-    navigation.navigate("TaskVerification", { task, workOrder });
+   navigation.navigate("Home", { screen: "WorkOrderDetail" })
   };
 
   const renderTaskItem = ({ item }) => (

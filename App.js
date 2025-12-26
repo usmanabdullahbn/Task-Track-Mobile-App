@@ -71,7 +71,6 @@ function TaskStackScreen() {
   return (
     <TasksStack.Navigator screenOptions={{ headerShown: false }}>
       {/* <TasksStack.Screen name="TasksMain" component={Tasks} /> */}
-      <TasksStack.Screen name="TaskDetail" component={TaskDetail} />
       <TasksStack.Screen name="TaskVerification" component={TaskVerification} />
       <TasksStack.Screen name="TaskStart" component={TaskStart} />
       <TasksStack.Screen name="TaskCompelete" component={TaskCompelete} />
