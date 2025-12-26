@@ -284,19 +284,19 @@ export const apiClient = {
   //   return response.json();
   // },
 
-async getOrdersByUserId(userId) {
-  const response = await fetch(`${API_BASE_URL}/orders/user/${userId}`);
+  async getOrdersByUserId(userId) {
+    const response = await fetch(`${API_BASE_URL}/orders/user/${userId}`);
 
-  const data = await response.json().catch(() => null); // handle invalid json
+    const data = await response.json().catch(() => null); // handle invalid json
 
-  if (!response.ok) {
-    // pass backend message
-    const msg = data?.message || "Failed to fetch user orders";
-    throw new Error(msg);
-  }
+    if (!response.ok) {
+      // pass backend message
+      const msg = data?.message || "Failed to fetch user orders";
+      throw new Error(msg);
+    }
 
-  return data;
-},
+    return data;
+  },
 
 
   async getOrdersByProjectId(projectId) {
@@ -422,16 +422,16 @@ async getOrdersByUserId(userId) {
     return response.json();
   },
 
-    async getTasksByUserId(userId, params = {}) {
+  async getTasksByUserId(userId, params = {}) {
     const queryParams = new URLSearchParams();
     if (params.page) queryParams.append('page', params.page);
     if (params.limit) queryParams.append('limit', params.limit);
     if (params.status) queryParams.append('status', params.status);
     if (params.priority) queryParams.append('priority', params.priority);
-    
+
     const queryString = queryParams.toString();
     const url = `${API_BASE_URL}/tasks/user/${userId}${queryString ? `?${queryString}` : ''}`;
-    
+
     const response = await fetch(url);
     if (!response.ok) throw new Error("Failed to fetch user tasks");
     return response.json();
