@@ -22,78 +22,35 @@ export default function PendingTasks({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch orders by getting order IDs from tasks stored in local storage
+  // Fetch orders from local storage
   useEffect(() => {
-    const fetchOrdersFromTasks = async () => {
+    const fetchOrdersFromStorage = async () => {
       try {
         setLoading(true);
 
-        // Get tasks from local storage
-        const storedTasks = await AsyncStorage.getItem("tasks");
-        console.log("Stored tasks data:", storedTasks);
+        // Get orders from local storage
+        const storedOrders = await AsyncStorage.getItem("orders");
+        console.log("Stored orders data:", storedOrders);
 
-        if (!storedTasks) {
-          setError("No tasks found");
+        if (!storedOrders) {
+          setError("No orders found in local storage");
           setLoading(false);
           return;
         }
 
-        const tasks = JSON.parse(storedTasks);
-        console.log("Parsed tasks:", tasks);
+        const orders = JSON.parse(storedOrders);
+        console.log("Parsed orders:", orders);
 
-        if (!Array.isArray(tasks) || tasks.length === 0) {
-          setError("No tasks available");
+        if (!Array.isArray(orders) || orders.length === 0) {
+          setError("No orders available");
           setLoading(false);
           return;
         }
 
-        // Extract unique order IDs from tasks
-        const orderIds = [...new Set(
-          tasks
-            .map(task => task.order.id || task.order_id)
-            .filter(id => id != null)
-        )];
-
-        console.log("Extracted order IDs:", orderIds);
-
-        if (orderIds.length === 0) {
-          setError("No order IDs found in tasks");
-          setLoading(false);
-          return;
-        }
-
-        // Fetch each order by ID
-        const fetchedOrders = [];
-        for (const orderId of orderIds) {
-          try {
-            console.log("Fetching order with ID:", orderId);
-            const response = await apiClient.getOrderById(orderId);
-            console.log("Fetched order response:", response);
-
-            // Extract the actual order data from the response
-            const orderData = response?.order || response;
-            console.log("Extracted order data:", orderData);
-
-            if (orderData) {
-              fetchedOrders.push(orderData);
-            }
-          } catch (orderErr) {
-            console.error("Error fetching order with ID", orderId, ":", orderErr);
-          }
-        }
-
-        console.log("All fetched orders:", fetchedOrders);
-        console.log("Total orders fetched:", fetchedOrders.length);
-
-        if (fetchedOrders.length === 0) {
-          setError("Could not fetch any orders");
-          setOrders([]);
-        } else {
-          setOrders(fetchedOrders);
-          setError(null);
-        }
+        setOrders(orders);
+        setError(null);
       } catch (err) {
-        console.error("Error fetching orders from tasks:", err);
+        console.error("Error fetching orders from storage:", err);
         setError(err.message || "Failed to load orders");
         setOrders([]);
       } finally {
@@ -101,7 +58,7 @@ export default function PendingTasks({ navigation }) {
       }
     };
 
-    fetchOrdersFromTasks();
+    fetchOrdersFromStorage();
   }, []);
 
   const filteredOrders = orders.filter(

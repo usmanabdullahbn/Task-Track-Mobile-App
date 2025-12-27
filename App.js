@@ -58,10 +58,10 @@ function HomeStackScreen() {
       <HomeStack.Screen name="DueTodayTasks" component={DueTodayTasks} />
       <HomeStack.Screen name="PastDueTasks" component={PastDueTasks} />
 
-      <HomeStack.Screen
+      {/* <HomeStack.Screen
         name="WorkOrderDetail"
         component={WorkOrderDetail}
-      />
+      /> */}
       <HomeStack.Screen name="TaskDetail" component={TaskDetail} />
     </HomeStack.Navigator>
   );

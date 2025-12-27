@@ -1,6 +1,13 @@
 "use client";
 
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  SafeAreaView,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 export default function TaskDetail({ route, navigation }) {
@@ -16,11 +23,14 @@ export default function TaskDetail({ route, navigation }) {
   ];
 
   const handleTaskPress = (task) => {
-   navigation.navigate("Home", { screen: "WorkOrderDetail" })
+    navigation.navigate("Tasks", { screen: "TaskVerification" });
   };
 
   const renderTaskItem = ({ item }) => (
-    <TouchableOpacity style={styles.taskCard} onPress={() => handleTaskPress(item)}>
+    <TouchableOpacity
+      style={styles.taskCard}
+      onPress={() => handleTaskPress(item)}
+    >
       <View style={styles.taskLeft}>
         <Text style={styles.taskNumber}>{item.id} #</Text>
         <Text style={styles.taskName}>{item.name}</Text>

@@ -37,15 +37,15 @@ export default function WorkOrderDetail({ route, navigation }) {
 
   const handleCompleteWorkorder = () => {
     alert("Workorder completed!");
-    navigation.navigate("Home", { screen: "HomeMain" });
+    navigation.navigate("Home", {screen: "HomeMain"})
   };
 
   const renderAssetItem = ({ item }) => (
     <TouchableOpacity
       style={styles.assetCard}
-      onPress={() =>
-        navigation.navigate("Tasks", { screen: "TaskVerification" })
-      }
+      // onPress={() =>
+      //   navigation.navigate("Tasks", { screen: "TaskDetail" }, { item })
+      // }
     >
       <View style={styles.assetLeft}>
         <Text style={styles.assetNumber}>{item.id} #</Text>

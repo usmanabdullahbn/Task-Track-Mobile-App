@@ -23,6 +23,7 @@ export default function HomeScreen({ navigation }) {
       const userJson = await AsyncStorage.getItem("user");
       const user = userJson ? JSON.parse(userJson) : null;
       const userId = user?._id;
+      console.log("LocalStorage - User retrieved:", user ? { _id: user._id, name: user.name, email: user.email } : null);
 
       if (!userId) {
         setError("User ID not found");
@@ -30,6 +31,10 @@ export default function HomeScreen({ navigation }) {
         setStats({ totalTasks: 0, todoTasks: 0, inProgressTasks: 0, completedTasks: 0, onHoldTasks: 0 });
         setLoading(false);
         await AsyncStorage.setItem("tasks", JSON.stringify([])); // store empty
+        await AsyncStorage.setItem("orders", JSON.stringify([])); // store empty orders
+        await AsyncStorage.setItem("assets", JSON.stringify([])); // store empty assets
+        await AsyncStorage.setItem("projects", JSON.stringify([])); // store empty projects
+        console.log("LocalStorage cleared - user not found");
         return;
       }
 // console.log(userId)
@@ -40,8 +45,119 @@ export default function HomeScreen({ navigation }) {
       // store tasks in AsyncStorage
       try {
         await AsyncStorage.setItem("tasks", JSON.stringify(tasksArray));
+        console.log("LocalStorage - Tasks stored:", tasksArray.length, "tasks");
       } catch (e) {
         console.warn("Failed to save tasks to storage:", e);
+      }
+
+      // Initialize variables for fetched data
+      let fetchedOrders = [];
+      let fetchedAssets = [];
+      let fetchedProjects = [];
+
+      // Extract unique order IDs from tasks and fetch orders
+      const orderIds = [...new Set(
+        tasksArray
+          .map(task => task.order?.id || task.order_id)
+          .filter(id => id != null)
+      )];
+
+      if (orderIds.length > 0) {
+        try {
+          // Fetch each order by ID
+          fetchedOrders = [];
+          for (const orderId of orderIds) {
+            try {
+              const response = await apiClient.getOrderById(orderId);
+              const orderData = response?.order || response;
+              if (orderData) {
+                fetchedOrders.push(orderData);
+              }
+            } catch (orderErr) {
+              console.error("Error fetching order with ID", orderId, ":", orderErr);
+            }
+          }
+
+          // Store orders in AsyncStorage
+          try {
+            await AsyncStorage.setItem("orders", JSON.stringify(fetchedOrders));
+            console.log("LocalStorage - Orders stored:", fetchedOrders.length, "orders");
+          } catch (e) {
+            console.warn("Failed to save orders to storage:", e);
+          }
+        } catch (err) {
+          console.error("Error fetching orders:", err);
+        }
+      }
+
+      // Extract unique asset IDs from tasks and fetch assets
+      const assetIds = [...new Set(
+        tasksArray
+          .map(task => task.asset?.id || task.asset_id)
+          .filter(id => id != null)
+      )];
+
+      if (assetIds.length > 0) {
+        try {
+          // Fetch each asset by ID
+          fetchedAssets = [];
+          for (const assetId of assetIds) {
+            try {
+              const response = await apiClient.getAssetById(assetId);
+              const assetData = response?.asset || response;
+              if (assetData) {
+                fetchedAssets.push(assetData);
+              }
+            } catch (assetErr) {
+              console.error("Error fetching asset with ID", assetId, ":", assetErr);
+            }
+          }
+
+          // Store assets in AsyncStorage
+          try {
+            await AsyncStorage.setItem("assets", JSON.stringify(fetchedAssets));
+            console.log("LocalStorage - Assets stored:", fetchedAssets.length, "assets");
+          } catch (e) {
+            console.warn("Failed to save assets to storage:", e);
+          }
+        } catch (err) {
+          console.error("Error fetching assets:", err);
+        }
+      }
+
+      // Extract unique project IDs from tasks and fetch projects
+      const projectIds = [...new Set(
+        tasksArray
+          .map(task => task.project?.id || task.project_id)
+          .filter(id => id != null)
+      )];
+
+      if (projectIds.length > 0) {
+        try {
+          // Fetch each project by ID
+          fetchedProjects = [];
+          for (const projectId of projectIds) {
+            try {
+              const response = await apiClient.getProjectById(projectId);
+              const projectData = response?.project || response;
+              if (projectData) {
+                fetchedProjects.push(projectData);
+              }
+            } catch (projectErr) {
+              console.error("Error fetching project with ID", projectId, ":", projectErr);
+            }
+          }
+
+          // Store projects in AsyncStorage
+          try {
+            await AsyncStorage.setItem("projects", JSON.stringify(fetchedProjects));
+            console.log("LocalStorage - Projects stored:", fetchedProjects.length, "projects");
+          } catch (e) {
+            console.warn("Failed to save projects to storage:", e);
+          }
+        } catch (err) {
+          console.error("Error fetching projects:", err);
+        }
       }
 
       // tolerant status matching
@@ -65,11 +181,24 @@ export default function HomeScreen({ navigation }) {
       });
       setTasks(tasksArray);
       setError(null);
+
+      // Log summary of all localStorage data
+      console.log("=== LocalStorage Summary ===");
+      console.log("User:", user ? { _id: user._id, name: user.name, email: user.email } : null);
+      console.log("Tasks:", tasksArray.length);
+      console.log("Orders:", fetchedOrders?.length || 0);
+      console.log("Assets:", fetchedAssets?.length || 0);
+      console.log("Projects:", fetchedProjects?.length || 0);
+      console.log("===========================");
     } catch (err) {
       console.error("Failed to fetch tasks by user:", err);
-      // clear stored tasks on error
+      // clear stored tasks and orders on error
       try {
         await AsyncStorage.setItem("tasks", JSON.stringify([]));
+        await AsyncStorage.setItem("orders", JSON.stringify([]));
+        await AsyncStorage.setItem("assets", JSON.stringify([]));
+        await AsyncStorage.setItem("projects", JSON.stringify([]));
+        console.log("LocalStorage cleared due to error");
       } catch (e) {
         /* ignore */ 
       }
@@ -85,8 +214,19 @@ export default function HomeScreen({ navigation }) {
     fetchTasksByUser();
   }, []);
 
-  const handleReload = () => {
-    fetchTasksByUser();
+  const handleReload = async () => {
+    try {
+      // Clear data localStorage (but keep user logged in)
+      await AsyncStorage.multiRemove(["tasks", "orders", "assets", "projects"]);
+      console.log("LocalStorage data cleared for refresh - user session preserved");
+
+      // Then re-fetch all data
+      await fetchTasksByUser();
+    } catch (error) {
+      console.error("Error during refresh:", error);
+      // Still try to fetch data even if clearing failed
+      await fetchTasksByUser();
+    }
   };
 
   const statCards = [
