@@ -10,7 +10,6 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import BackButton from "../components/BackButton";
 
 export default function ProfileScreen({ setIsLoggedIn }) {
   const [user, setUser] = useState(null);
@@ -74,7 +73,6 @@ export default function ProfileScreen({ setIsLoggedIn }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <BackButton onPress={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.content}>
         {/* Header */}
         <View style={styles.header}>
