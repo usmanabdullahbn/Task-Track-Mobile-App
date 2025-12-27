@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect,  useRef } from "react";
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   SafeAreaView,
   ActivityIndicator,
+  ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -19,6 +20,8 @@ export default function TaskDetail({ route, navigation }) {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isSigned, setIsSigned] = useState(false);
+  const signaturePadRef = useRef(null);
 
   const orderId = route?.params?.orderId;
 
@@ -86,6 +89,19 @@ export default function TaskDetail({ route, navigation }) {
     navigation.navigate("Tasks", { screen: "TaskVerification" });
   };
 
+  const handleClearSignature = () => {
+    setIsSigned(false);
+  };
+
+  const handleSaveSignature = () => {
+    setIsSigned(true);
+  };
+
+  const handleCompleteOrder = () => {
+    alert("Order completed!");
+    navigation.navigate("Home", { screen: "HomeMain" });
+  };
+
   const renderTaskItem = ({ item }) => (
     <TouchableOpacity
       style={styles.taskCard}
@@ -132,8 +148,9 @@ export default function TaskDetail({ route, navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <BackButton onPress={() => navigation.goBack()} />
-      <Text style={styles.mainHeading}>Tasks</Text>
+      <ScrollView style={styles.scrollView}>
+        <BackButton onPress={() => navigation.goBack()} />
+        <Text style={styles.mainHeading}>Tasks</Text>
 
       <View style={styles.infoSection}>
         <Text style={styles.workOrderTitle}>
@@ -172,6 +189,45 @@ export default function TaskDetail({ route, navigation }) {
           scrollEnabled={false}
         />
       </View>
+
+      {/* Signature Section */}
+      <View style={styles.signatureSection}>
+        <Text style={styles.signatureTitle}>Customer Signature</Text>
+
+        <View style={styles.signaturePad}>
+          <View style={styles.signaturePlaceholder}>
+            <Ionicons name="create-outline" size={40} color="#d1d5db" />
+            <Text style={styles.signatureText}>
+              Tap to sign here to confirm task completion
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.signatureButtonRow}>
+          <TouchableOpacity
+            style={styles.clearButton}
+            onPress={handleClearSignature}
+          >
+            <Text style={styles.clearButtonText}>Clear Signature</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.saveButton}
+            onPress={handleSaveSignature}
+          >
+            <Text style={styles.saveButtonText}>Save Signature</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Complete Order Button */}
+      <TouchableOpacity
+        style={styles.completeButton}
+        onPress={handleCompleteOrder}
+      >
+        <Text style={styles.completeButtonText}>Complete Order</Text>
+      </TouchableOpacity>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -180,6 +236,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f9fafb",
+
+  },
+  scrollView: {
+    flex: 1,
   },
   loadingContainer: {
     flex: 1,
@@ -300,5 +360,79 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
     color: "#2563eb",
+  },
+  signatureSection: {
+    paddingHorizontal: 16,
+    marginBottom: 24,
+  },
+  signatureTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#1f2937",
+    marginBottom: 16,
+  },
+  signaturePad: {
+    marginBottom: 16,
+  },
+  signaturePlaceholder: {
+    backgroundColor: "#fff",
+    borderWidth: 2,
+    borderColor: "#d1d5db",
+    borderStyle: "dashed",
+    borderRadius: 8,
+    paddingVertical: 48,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
+  },
+  signatureText: {
+    fontSize: 13,
+    color: "#6b7280",
+    textAlign: "center",
+    paddingHorizontal: 12,
+  },
+  signatureButtonRow: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  clearButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderWidth: 2,
+    borderColor: "#86efac",
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  clearButtonText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#16a34a",
+  },
+  saveButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: "#16a34a",
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  saveButtonText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#fff",
+  },
+  completeButton: {
+    marginHorizontal: 16,
+    marginBottom: 24,
+    paddingVertical: 14,
+    backgroundColor: "#2563eb",
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  completeButtonText: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#fff",
   },
 });

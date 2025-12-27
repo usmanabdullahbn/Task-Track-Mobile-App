@@ -4,7 +4,6 @@ import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { apiClient } from "../lib/api-client";
 import ReloadButton from "../components/ReloadButton";
-import BackButton from "../components/BackButton";
 
 export default function HomeScreen({ navigation }) {
   const [stats, setStats] = useState({
@@ -240,7 +239,6 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <BackButton onPress={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.header}>
           <View style={styles.headerRow}>
