@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, SafeAreaView, Image } from "react-native"
 import { Ionicons } from "@expo/vector-icons";
+import BackButton from "../components/BackButton";
 import img from "../asserts/worker.webp"
 
 export default function TaskCompelete({ navigation }) {
@@ -20,6 +21,7 @@ export default function TaskCompelete({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
+      <BackButton onPress={() => navigation.goBack()} />
       <Text style={styles.mainHeading}>Complete Task</Text>
 
       <View style={styles.content}>

@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import BackButton from "../components/BackButton";
 
 export default function ProfileScreen({ setIsLoggedIn }) {
   const [user, setUser] = useState(null);
@@ -59,19 +60,21 @@ export default function ProfileScreen({ setIsLoggedIn }) {
     {
       icon: "person-outline",
       label: "Name",
-      value: user?.username || "Jhon.",
+      value: user?.name || "Loading...",
     },
     {
       icon: "mail-outline",
       label: "Email",
-      value: user?.email || "jhon@example.com",
+      value: user?.email || "Loading...",
     },
-    { icon: "call-outline", label: "Phone", value: "+1-555-0100" },
-    { icon: "briefcase-outline", label: "Role", value: "Field Technician" },
+    { icon: "call-outline", label: "Phone", value: user?.phone || "Not provided" },
+    { icon: "briefcase-outline", label: "Role", value: user?.role || "Not specified" },
+    { icon: "checkmark-circle-outline", label: "Status", value: user?.status || "Not specified" },
   ];
 
   return (
     <SafeAreaView style={styles.container}>
+      <BackButton onPress={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.content}>
         {/* Header */}
         <View style={styles.header}>
@@ -82,13 +85,13 @@ export default function ProfileScreen({ setIsLoggedIn }) {
         <View style={styles.profileSection}>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>
-              {user?.username ? user.username.charAt(0).toUpperCase() : "?"}
+              {user?.name ? user.name.charAt(0).toUpperCase() : "?"}
             </Text>
           </View>
           <Text style={styles.profileName}>
-            {user?.username || "Loading..."}
+            {user?.name || "Loading..."}
           </Text>
-          <Text style={styles.profileRole}>User</Text>
+          <Text style={styles.profileRole}>{user?.designation || "User"}</Text>
         </View>
 
         {/* Info Items */}

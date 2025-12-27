@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { apiClient } from "../lib/api-client";
 import ReloadButton from "../components/ReloadButton";
+import BackButton from "../components/BackButton";
 
 export default function HomeScreen({ navigation }) {
   const [stats, setStats] = useState({
@@ -23,7 +24,7 @@ export default function HomeScreen({ navigation }) {
       const userJson = await AsyncStorage.getItem("user");
       const user = userJson ? JSON.parse(userJson) : null;
       const userId = user?._id;
-      console.log("LocalStorage - User retrieved:", user ? { _id: user._id, name: user.name, email: user.email } : null);
+      console.log("LocalStorage - User ", user );
 
       if (!userId) {
         setError("User ID not found");
@@ -185,10 +186,10 @@ export default function HomeScreen({ navigation }) {
       // Log summary of all localStorage data
       console.log("=== LocalStorage Summary ===");
       console.log("User:", user ? { _id: user._id, name: user.name, email: user.email } : null);
-      console.log("Tasks:", tasksArray.length);
-      console.log("Orders:", fetchedOrders?.length || 0);
-      console.log("Assets:", fetchedAssets?.length || 0);
-      console.log("Projects:", fetchedProjects?.length || 0);
+      console.log("Tasks:", tasksArray);
+      console.log("Orders:", fetchedOrders);
+      console.log("Assets:", fetchedAssets);
+      console.log("Projects:", fetchedProjects);
       console.log("===========================");
     } catch (err) {
       console.error("Failed to fetch tasks by user:", err);
@@ -239,6 +240,7 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
+      <BackButton onPress={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.header}>
           <View style={styles.headerRow}>

@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, SafeAreaView } from "react-native"
 import { Ionicons } from "@expo/vector-icons";
+import BackButton from "../components/BackButton";
 
 
 export default function TaskStart({ navigation }) {
@@ -20,6 +21,7 @@ export default function TaskStart({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
+      <BackButton onPress={() => navigation.goBack()} />
       <Text style={styles.mainHeading}>Start Task</Text>
 
       <View style={styles.content}>

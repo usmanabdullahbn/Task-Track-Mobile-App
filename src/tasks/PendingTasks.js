@@ -14,6 +14,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { apiClient } from "../lib/api-client";
+import BackButton from "../components/BackButton";
 
 
 export default function PendingTasks({ navigation }) {
@@ -71,7 +72,7 @@ export default function PendingTasks({ navigation }) {
     <TouchableOpacity
       style={styles.workOrderCard}
       onPress={() =>
-        navigation.navigate("TaskDetail", { item })
+        navigation.navigate("TaskDetail", { orderId: item._id || item.id })
       }
     >
       <View style={styles.cardHeader}>
@@ -91,6 +92,7 @@ export default function PendingTasks({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
+      <BackButton onPress={() => navigation.goBack()} />
       <Text style={styles.mainHeading}>Work Orders</Text>
 
       <View style={styles.searchContainer}>

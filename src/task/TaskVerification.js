@@ -2,6 +2,7 @@
 
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from "react-native"
 import { Ionicons } from "@expo/vector-icons";
+import BackButton from "../components/BackButton";
 
 export default function TaskVerification({ navigation }) {
   const handleStartTask = () => {
@@ -10,6 +11,7 @@ export default function TaskVerification({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
+      <BackButton onPress={() => navigation.goBack()} />
       <Text style={styles.mainHeading}>Task Verification</Text>
 
       <View style={styles.content}>

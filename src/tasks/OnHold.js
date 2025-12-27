@@ -11,6 +11,7 @@ import {
   SafeAreaView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import BackButton from "../components/BackButton";
 
 const mockWorkOrders = [
   {
@@ -65,6 +66,7 @@ export default function OnHoldTasks({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
+      <BackButton onPress={() => navigation.goBack()} />
       <Text style={styles.mainHeading}>Work Orders</Text>
 
       <View style={styles.searchContainer}>
