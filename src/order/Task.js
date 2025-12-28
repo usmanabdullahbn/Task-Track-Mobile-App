@@ -254,7 +254,7 @@ export default function TaskDetail({ route, navigation }) {
 
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Asset:</Text>
-            <Text style={styles.infoValue}>1 Panel</Text>
+            {/* <Text style={styles.infoValue}>1 Panel</Text> */}
           </View>
         </View>
 
