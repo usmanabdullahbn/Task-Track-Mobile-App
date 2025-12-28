@@ -14,6 +14,7 @@ export default function TaskStart({ navigation, route }) {
   const taskId = route?.params?.taskId || route?.params?.task?.id;
   console.log("Task ID on Start  page",taskId)
 
+  const [task, setTask] = useState(null);
   const [comments, setComments] = useState("")
   const [photo, setPhoto] = useState(null)
   const [showPhotoOptions, setShowPhotoOptions] = useState(false)
@@ -44,10 +45,7 @@ export default function TaskStart({ navigation, route }) {
     setPhotoCapture(true)
   }
 
-  const handleCompleteSetup = () => {
-    // Navigate to next screen
-    navigation.navigate("TaskCompelete", { taskId: task?._id })
-  }
+  const pickImageFromGallery = async () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
