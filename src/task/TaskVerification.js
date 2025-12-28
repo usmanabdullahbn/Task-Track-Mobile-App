@@ -4,9 +4,11 @@ import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from "react-na
 import { Ionicons } from "@expo/vector-icons";
 import BackButton from "../components/BackButton";
 
-export default function TaskVerification({ navigation }) {
+export default function TaskVerification({ navigation, route }) {
+  const taskId = route?.params?.taskId || route?.params?.task?.id;
+
   const handleStartTask = () => {
-    navigation.navigate("TaskStart")
+    navigation.navigate("TaskStart", { taskId: taskId })
   }
 
   return (

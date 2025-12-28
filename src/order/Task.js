@@ -99,7 +99,7 @@ export default function TaskDetail({ route, navigation }) {
   console.log("Tasks for Order ID", orderId, ":", tasks);
 
   const handleTaskPress = (task) => {
-    navigation.navigate("Tasks", { screen: "TaskVerification" });
+    navigation.navigate("Tasks", { screen: "TaskVerification", params: { taskId: task.id, task: task } });
   };
 
   const handleOpenSignatureModal = () => {
