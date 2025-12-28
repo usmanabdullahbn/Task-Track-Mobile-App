@@ -488,10 +488,11 @@ export const apiClient = {
   },
 
   async updateTask(id, taskData) {
+    const isFormData = taskData instanceof FormData;
     const response = await fetch(`${API_BASE_URL}/tasks/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(taskData),
+      headers: isFormData ? {} : { "Content-Type": "application/json" },
+      body: isFormData ? taskData : JSON.stringify(taskData),
     });
 
     if (!response.ok) throw new Error("Failed to update task");
