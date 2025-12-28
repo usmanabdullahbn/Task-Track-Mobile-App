@@ -100,8 +100,8 @@ export default function TaskDetail({ route, navigation }) {
 
   const handleTaskPress = (task) => {
     // console.log("task object:", task);
-    navigation.navigate("Tasks", { taskId: task._id });
-    console.log("Navigating to TaskVerification with taskId:", task._id);
+    navigation.navigate("Tasks", { screen: "TaskVerification", params: { taskId: task._id, task: task } });
+    console.log("Navigating to TaskVerification with taskId:", task.id);
   };
 
   const handleOpenSignatureModal = () => {

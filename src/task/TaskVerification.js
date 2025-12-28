@@ -6,12 +6,13 @@ import BackButton from "../components/BackButton";
 
 export default function TaskVerification({ navigation, route }) {
   const task = route?.params?.task;
-  const taskId = task?.id;
+  const taskId = task?._id;
 
   const handleStartTask = () => {
     console.log("Navigating to TaskStart with taskId:", taskId);
-    navigation.navigate("TaskStart", { taskId: taskId } )
-  }
+    navigation.navigate("TaskStart", { taskId });
+  };
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -28,12 +29,12 @@ export default function TaskVerification({ navigation, route }) {
         <Text style={styles.verificationText}>Location Verified</Text>
         <Text style={styles.descriptionText}>You are currently at the customer's site. Proceed to start the task.</Text>
 
-        {task && (
+        {/* {task && (
           <View style={styles.taskInfo}>
             <Text style={styles.taskTitle}>{task.title || task.name}</Text>
             <Text style={styles.taskAsset}>Asset: {task.asset?.name || "N/A"}</Text>
           </View>
-        )}
+        )} */}
 
         <TouchableOpacity style={styles.startButton} onPress={handleStartTask}>
           <Text style={styles.startButtonText}>Start Task</Text>

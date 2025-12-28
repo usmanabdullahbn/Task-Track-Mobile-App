@@ -24,7 +24,7 @@ export default function TaskCompelete({ navigation, route }) {
           const storedTasks = await AsyncStorage.getItem('tasks');
           if (storedTasks) {
             const tasks = JSON.parse(storedTasks);
-            const foundTask = tasks.find(t => t.id === taskId);
+            const foundTask = tasks.find(t => t._id === taskId);
             if (foundTask) {
               setTask(foundTask);
             }
