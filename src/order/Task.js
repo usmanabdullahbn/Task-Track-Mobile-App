@@ -99,7 +99,7 @@ export default function TaskDetail({ route, navigation }) {
   console.log("Tasks for Order ID", orderId, ":", tasks);
 
   const handleTaskPress = (task) => {
-    console.log("task object:", task);
+    // console.log("task object:", task);
     navigation.navigate("Tasks", { taskId: task._id });
     console.log("Navigating to TaskVerification with taskId:", task._id);
   };

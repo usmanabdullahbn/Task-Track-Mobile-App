@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, SafeAreaView, Image, Modal, Alert, ActivityIndicator } from "react-native"
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
@@ -11,8 +11,11 @@ import { apiClient } from "../lib/api-client";
 
 
 export default function TaskStart({ navigation, route }) {
-  const taskId = route?.params?.taskId || route?.params?.task?.id;
-  console.log("Task ID on Start  page",taskId)
+    const taskId = route?.params?.taskId;
+    useEffect(() => {
+      console.log("Task ID on Start  page",taskId)
+    }, [taskId]);
+  // console.log("Task ID on Start  page",taskId)
 
   const [task, setTask] = useState(null);
   const [comments, setComments] = useState("")
@@ -28,7 +31,7 @@ export default function TaskStart({ navigation, route }) {
           const storedTasks = await AsyncStorage.getItem('tasks');
           if (storedTasks) {
             const tasks = JSON.parse(storedTasks);
-            const foundTask = tasks.find(t => t._id === taskId);
+            const foundTask = tasks.find(t => t.id === taskId);
             if (foundTask) {
               setTask(foundTask);
             }

@@ -3,32 +3,14 @@
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from "react-native"
 import { Ionicons } from "@expo/vector-icons";
 import BackButton from "../components/BackButton";
-import { useState, useEffect } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function TaskVerification({ navigation, route }) {
-  const [task, setTask] = useState(null);
-  const taskId = route?.params?.taskId;
-  console.log("Task ID on Verification page", taskId);
-  // console.log("Route params:", route?.params);
-
-  useEffect(() => {
-    const fetchTask = async () => {
-      if (taskId) {
-        const storedTasks = await AsyncStorage.getItem("tasks");
-        if (storedTasks) {
-          const tasks = JSON.parse(storedTasks);
-          const foundTask = tasks.find(t => t._id === taskId);
-          setTask(foundTask);
-        }
-      }
-    };
-    fetchTask();
-  }, [taskId]);
+  const task = route?.params?.task;
+  const taskId = task?.id;
 
   const handleStartTask = () => {
-    console.log("Navigating to TaskStart with taskId:", task?._id);
-    navigation.navigate("TaskStart", { taskId: task?._id })
+    console.log("Navigating to TaskStart with taskId:", taskId);
+    navigation.navigate("TaskStart", { taskId: taskId } )
   }
 
   return (
