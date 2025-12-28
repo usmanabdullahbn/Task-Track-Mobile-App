@@ -1,14 +1,41 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, SafeAreaView, Image } from "react-native"
 import { Ionicons } from "@expo/vector-icons";
 import BackButton from "../components/BackButton";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import img from "../asserts/worker.webp"
 
-export default function TaskCompelete({ navigation }) {
+export default function TaskCompelete({ navigation, route }) {
+  const taskId = route?.params?.taskId;
+    console.log("Task ID on Start  page",taskId)
+
+
+  const [task, setTask] = useState(null);
+
   const [comments, setComments] = useState("")
   const [photoRetaken, setPhotoRetaken] = useState(false)
+
+  useEffect(() => {
+    const fetchTask = async () => {
+      if (taskId) {
+        try {
+          const storedTasks = await AsyncStorage.getItem('tasks');
+          if (storedTasks) {
+            const tasks = JSON.parse(storedTasks);
+            const foundTask = tasks.find(t => t._id === taskId);
+            if (foundTask) {
+              setTask(foundTask);
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching task:', error);
+        }
+      }
+    };
+    fetchTask();
+  }, [taskId]);
 
   const handleRetakePhoto = () => {
     setPhotoRetaken(!photoRetaken)
@@ -16,13 +43,20 @@ export default function TaskCompelete({ navigation }) {
 
   const handleFinishTask = () => {
     // Navigate to completion screen or home
-    navigation.navigate("Customers", {screen: "WorkOrderDetai"})
+    navigation.navigate("Home", { screen: "HomeMain" })
   }
 
   return (
     <SafeAreaView style={styles.container}>
       <BackButton onPress={() => navigation.goBack()} />
       <Text style={styles.mainHeading}>Complete Task</Text>
+
+      {task && (
+        <View style={styles.taskInfo}>
+          <Text style={styles.taskTitle}>{task.title || task.name}</Text>
+          <Text style={styles.taskAsset}>Asset: {task.asset?.name || "N/A"}</Text>
+        </View>
+      )}
 
       <View style={styles.content}>
         {/* Final Photo Capture Section */}
@@ -133,6 +167,25 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     color: "#1f2937",
+  },
+  taskInfo: {
+    backgroundColor: "#fff",
+    padding: 16,
+    marginHorizontal: 16,
+    marginBottom: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+  },
+  taskTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#1f2937",
+    marginBottom: 8,
+  },
+  taskAsset: {
+    fontSize: 14,
+    color: "#6b7280",
   },
   commentsInput: {
     backgroundColor: "#fff",

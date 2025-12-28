@@ -1,14 +1,40 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, SafeAreaView } from "react-native"
 import { Ionicons } from "@expo/vector-icons";
 import BackButton from "../components/BackButton";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
-export default function TaskStart({ navigation }) {
+export default function TaskStart({ navigation, route }) {
+  const taskId = route?.params?.taskId;
+  console.log("Task ID on Start  page",taskId)
+
+  const [task, setTask] = useState(null);
+
   const [comments, setComments] = useState("")
   const [photoCapture, setPhotoCapture] = useState(false)
+
+  useEffect(() => {
+    const fetchTask = async () => {
+      if (taskId) {
+        try {
+          const storedTasks = await AsyncStorage.getItem('tasks');
+          if (storedTasks) {
+            const tasks = JSON.parse(storedTasks);
+            const foundTask = tasks.find(t => t._id === taskId);
+            if (foundTask) {
+              setTask(foundTask);
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching task:', error);
+        }
+      }
+    };
+    fetchTask();
+  }, [taskId]);
 
   const handleTakePhoto = () => {
     setPhotoCapture(true)
@@ -16,13 +42,20 @@ export default function TaskStart({ navigation }) {
 
   const handleCompleteSetup = () => {
     // Navigate to next screen
-    navigation.navigate("TaskCompelete")
+    navigation.navigate("TaskCompelete", { taskId: task?._id })
   }
 
   return (
     <SafeAreaView style={styles.container}>
       <BackButton onPress={() => navigation.goBack()} />
       <Text style={styles.mainHeading}>Start Task</Text>
+
+      {task && (
+        <View style={styles.taskInfo}>
+          <Text style={styles.taskTitle}>{task.title || task.name}</Text>
+          <Text style={styles.taskAsset}>Asset: {task.asset?.name || "N/A"}</Text>
+        </View>
+      )}
 
       <View style={styles.content}>
         {/* Capture Initial Photo Section */}
@@ -129,6 +162,25 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     color: "#fff",
+  },
+  taskInfo: {
+    backgroundColor: "#fff",
+    padding: 16,
+    marginHorizontal: 16,
+    marginBottom: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+  },
+  taskTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#1f2937",
+    marginBottom: 8,
+  },
+  taskAsset: {
+    fontSize: 14,
+    color: "#6b7280",
   },
   commentsInput: {
     backgroundColor: "#fff",

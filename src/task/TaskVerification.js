@@ -3,10 +3,32 @@
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from "react-native"
 import { Ionicons } from "@expo/vector-icons";
 import BackButton from "../components/BackButton";
+import { useState, useEffect } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export default function TaskVerification({ navigation }) {
+export default function TaskVerification({ navigation, route }) {
+  const [task, setTask] = useState(null);
+  const taskId = route?.params?.taskId;
+  console.log("Task ID on Verification page", taskId);
+  // console.log("Route params:", route?.params);
+
+  useEffect(() => {
+    const fetchTask = async () => {
+      if (taskId) {
+        const storedTasks = await AsyncStorage.getItem("tasks");
+        if (storedTasks) {
+          const tasks = JSON.parse(storedTasks);
+          const foundTask = tasks.find(t => t._id === taskId);
+          setTask(foundTask);
+        }
+      }
+    };
+    fetchTask();
+  }, [taskId]);
+
   const handleStartTask = () => {
-    navigation.navigate("TaskStart")
+    console.log("Navigating to TaskStart with taskId:", task?._id);
+    navigation.navigate("TaskStart", { taskId: task?._id })
   }
 
   return (
@@ -23,6 +45,13 @@ export default function TaskVerification({ navigation }) {
 
         <Text style={styles.verificationText}>Location Verified</Text>
         <Text style={styles.descriptionText}>You are currently at the customer's site. Proceed to start the task.</Text>
+
+        {task && (
+          <View style={styles.taskInfo}>
+            <Text style={styles.taskTitle}>{task.title || task.name}</Text>
+            <Text style={styles.taskAsset}>Asset: {task.asset?.name || "N/A"}</Text>
+          </View>
+        )}
 
         <TouchableOpacity style={styles.startButton} onPress={handleStartTask}>
           <Text style={styles.startButtonText}>Start Task</Text>
@@ -78,6 +107,24 @@ const styles = StyleSheet.create({
     color: "#6b7280",
     textAlign: "center",
     lineHeight: 20,
+  },
+  taskInfo: {
+    backgroundColor: "#fff",
+    padding: 16,
+    borderRadius: 8,
+    marginVertical: 16,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+  },
+  taskTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#1f2937",
+    marginBottom: 8,
+  },
+  taskAsset: {
+    fontSize: 14,
+    color: "#6b7280",
   },
   startButton: {
     backgroundColor: "#2563eb",
