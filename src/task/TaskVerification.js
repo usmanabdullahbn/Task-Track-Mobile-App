@@ -14,6 +14,38 @@ export default function TaskVerification({ navigation, route }) {
 
   const [locationVerified, setLocationVerified] = useState(false);
   const [project, setProject] = useState(null);
+  const [distance, setDistance] = useState(null);
+
+  const verifyLocation = async () => {
+    if (!project) return;
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        console.log('Location permission denied');
+        return;
+      }
+
+      const location = await Location.getCurrentPositionAsync({});
+      const { latitude: userLat, longitude: userLng } = location.coords;
+      console.log("Mobile Location:", { latitude: userLat, longitude: userLng });
+      const projectLat = parseFloat(project.latitude.$numberDecimal || project.latitude);
+      const projectLng = parseFloat(project.longitude.$numberDecimal || project.longitude);
+
+      // Calculate distance using haversine formula
+      const distance = getDistanceFromLatLonInKm(userLat, userLng, projectLat, projectLng) * 1000; // in meters
+      console.log(`Distance to project: ${distance} meters`);
+      setDistance(distance);
+
+      // Verify if within 100 meters
+      if (distance <= 100) {
+        setLocationVerified(true);
+      } else {
+        setLocationVerified(false);
+      }
+    } catch (error) {
+      console.error("Error verifying location:", error);
+    }
+  };
 
   useEffect(() => {
     const fetchProjectAndVerifyLocation = async () => {
@@ -27,29 +59,8 @@ export default function TaskVerification({ navigation, route }) {
             if (foundProject) {
               console.log("Fetched Project from storage:", foundProject);
               setProject(foundProject);
-
-              // Now verify location
-              const { status } = await Location.requestForegroundPermissionsAsync();
-              if (status !== 'granted') {
-                console.log('Location permission denied');
-                return;
-              }
-
-              const location = await Location.getCurrentPositionAsync({});
-              const { latitude: userLat, longitude: userLng } = location.coords;
-              const projectLat = parseFloat(foundProject.latitude.$numberDecimal || foundProject.latitude);
-              const projectLng = parseFloat(foundProject.longitude.$numberDecimal || foundProject.longitude);
-
-              // Calculate distance using haversine formula
-              const distance = getDistanceFromLatLonInKm(userLat, userLng, projectLat, projectLng) * 1000; // in meters
-              console.log(`Distance to project: ${distance} meters`);
-
-              // Verify if within 100 meters
-              if (distance <= 100) {
-                setLocationVerified(true);
-              } else {
-                setLocationVerified(false);
-              }
+              // Verify location after setting project
+              await verifyLocation();
             } else {
               console.log("Project not found in storage");
             }
@@ -63,6 +74,12 @@ export default function TaskVerification({ navigation, route }) {
     };
     fetchProjectAndVerifyLocation();
   }, [task]);
+
+  useEffect(() => {
+    if (project) {
+      verifyLocation();
+    }
+  }, [project]);
 
   // Haversine formula to calculate distance
   const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
@@ -90,7 +107,16 @@ export default function TaskVerification({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <BackButton onPress={() => navigation.goBack()} />
+      <View style={styles.header}>
+        <View style={styles.backButtonContainer}>
+          <BackButton onPress={() => navigation.goBack()} />
+        </View>
+        <TouchableOpacity onPress={verifyLocation} style={styles.reloadButton}>
+          <View style={styles.reloadCircle}>
+            <Ionicons name="reload" size={20} color="#2563eb" />
+          </View>
+        </TouchableOpacity>
+      </View>
       <Text style={styles.mainHeading}>Task Verification</Text>
 
       <View style={styles.content}>
@@ -135,6 +161,31 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f9fafb",
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    position: "relative",
+  },
+  backButtonContainer: {
+    position: "absolute",
+    left: 16,
+  },
+  reloadButton: {
+    // centered by justifyContent center
+  },
+  reloadCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#eff6ff",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#2563eb",
   },
   mainHeading: {
     fontSize: 24,
