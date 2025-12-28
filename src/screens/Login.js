@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -29,24 +29,15 @@ export default function LoginScreen({ setIsLoggedIn, navigation }) {
 
   const handleEmailFocus = () => {
     setEmailFocused(true);
-    setTimeout(() => {
-      scrollViewRef.current?.scrollTo({ y: 50, animated: true });
-    }, 100);
   };
 
   const handlePasswordFocus = () => {
     setPasswordFocused(true);
-    setTimeout(() => {
-      scrollViewRef.current?.scrollTo({ y: 150, animated: true });
-    }, 100);
   };
 
   const handleBlur = () => {
     setEmailFocused(false);
     setPasswordFocused(false);
-    setTimeout(() => {
-      scrollViewRef.current?.scrollTo({ y: 0, animated: true });
-    }, 100);
   };
 
   const handleLogin = async () => {
@@ -98,14 +89,14 @@ export default function LoginScreen({ setIsLoggedIn, navigation }) {
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
         <ScrollView
           ref={scrollViewRef}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
-          scrollEnabled={true}
+          scrollEnabled={false}
           keyboardShouldPersistTaps="handled"
+          bounces={false}
         >
           <View style={styles.content}>
             <View style={styles.logoContainer}>
@@ -233,6 +224,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
+    justifyContent: "center",
   },
   content: {
     flex: 1,
