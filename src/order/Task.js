@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect,  useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -9,11 +9,17 @@ import {
   TouchableOpacity,
   SafeAreaView,
   ActivityIndicator,
+  Modal,
   ScrollView,
+  Dimensions,
+  Alert,
+  PanResponder,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import BackButton from "../components/BackButton";
+
+const { width: screenWidth } = Dimensions.get("window");
 
 export default function TaskDetail({ route, navigation }) {
   const [workOrder, setWorkOrder] = useState(null);
@@ -21,7 +27,14 @@ export default function TaskDetail({ route, navigation }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isSigned, setIsSigned] = useState(false);
+  const [showSignatureModal, setShowSignatureModal] = useState(false);
+  const [signatureImage, setSignatureImage] = useState(null);
+  const [paths, setPaths] = useState([]);
+  const [currentPath, setCurrentPath] = useState([]);
+
   const signaturePadRef = useRef(null);
+  const canvasRef = useRef(null);
+  const panResponderRef = useRef(null);
 
   const orderId = route?.params?.orderId;
 
@@ -89,12 +102,74 @@ export default function TaskDetail({ route, navigation }) {
     navigation.navigate("Tasks", { screen: "TaskVerification" });
   };
 
-  const handleClearSignature = () => {
-    setIsSigned(false);
+  const handleOpenSignatureModal = () => {
+    if (isSigned) {
+      Alert.alert(
+        "Replace Signature",
+        "Do you want to replace the existing signature?",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Replace",
+            onPress: () => {
+              pathsRef.current = [];
+              currentPathRef.current = [];
+              setShowSignatureModal(true);
+            },
+          },
+        ]
+      );
+    } else {
+      setShowSignatureModal(true);
+    }
   };
 
-  const handleSaveSignature = () => {
+  const handleClearCanvasSignature = () => {
+    setPaths([]);
+    setCurrentPath([]);
+  };
+
+  useEffect(() => {
+    if (showSignatureModal) {
+      panResponderRef.current = PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponder: () => true,
+        onPanResponderGrant: (evt) => {
+          const { locationX, locationY } = evt.nativeEvent;
+          setCurrentPath([{ x: locationX, y: locationY }]);
+        },
+        onPanResponderMove: (evt) => {
+          const { locationX, locationY } = evt.nativeEvent;
+          setCurrentPath((prev) => [...prev, { x: locationX, y: locationY }]);
+        },
+        onPanResponderRelease: () => {
+          if (currentPath.length > 0) {
+            setPaths((prev) => [...prev, currentPath]);
+            setCurrentPath([]);
+          }
+        },
+      });
+    }
+  }, [showSignatureModal, currentPath]);
+
+  const handleSaveCanvasSignature = () => {
+    if (paths.length === 0 && currentPath.length === 0) {
+      Alert.alert("Empty Signature", "Please draw your signature first");
+      return;
+    }
+    // Store the signature paths
+    const signatureData = JSON.stringify(paths);
+    setSignatureImage(signatureData);
     setIsSigned(true);
+    setShowSignatureModal(false);
+    setPaths([]);
+    setCurrentPath([]);
+  };
+
+  const handleCloseSignatureModal = () => {
+    setPaths([]);
+    setCurrentPath([]);
+    setShowSignatureModal(false);
   };
 
   const handleCompleteOrder = () => {
@@ -152,81 +227,231 @@ export default function TaskDetail({ route, navigation }) {
         <BackButton onPress={() => navigation.goBack()} />
         <Text style={styles.mainHeading}>Tasks</Text>
 
-      <View style={styles.infoSection}>
-        <Text style={styles.workOrderTitle}>
-          Tasks against WorkOrder #{" "}
-          {workOrder?.order_number ||
-            workOrder?.id ||
-            workOrder?._id ||
-            orderId}
-        </Text>
-
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Customer:</Text>
-          <Text style={styles.infoValue}>
-            {workOrder?.customer?.name || "N/A"}
+        <View style={styles.infoSection}>
+          <Text style={styles.workOrderTitle}>
+            Tasks against WorkOrder #{" "}
+            {workOrder?.order_number ||
+              workOrder?.id ||
+              workOrder?._id ||
+              orderId}
           </Text>
-        </View>
 
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Project:</Text>
-          <Text style={styles.infoValue}>
-            {workOrder?.title || workOrder?.description || "N/A"}
-          </Text>
-        </View>
-
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Asset:</Text>
-          <Text style={styles.infoValue}>1 Panel</Text>
-        </View>
-      </View>
-
-      <View style={styles.tasksSection}>
-        <FlatList
-          data={tasks}
-          renderItem={renderTaskItem}
-          keyExtractor={(item) => item._id || item.id.toString()}
-          scrollEnabled={false}
-        />
-      </View>
-
-      {/* Signature Section */}
-      <View style={styles.signatureSection}>
-        <Text style={styles.signatureTitle}>Customer Signature</Text>
-
-        <View style={styles.signaturePad}>
-          <View style={styles.signaturePlaceholder}>
-            <Ionicons name="create-outline" size={40} color="#d1d5db" />
-            <Text style={styles.signatureText}>
-              Tap to sign here to confirm task completion
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Customer:</Text>
+            <Text style={styles.infoValue}>
+              {workOrder?.customer?.name || "N/A"}
             </Text>
+          </View>
+
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Project:</Text>
+            <Text style={styles.infoValue}>
+              {workOrder?.title || workOrder?.description || "N/A"}
+            </Text>
+          </View>
+
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Asset:</Text>
+            <Text style={styles.infoValue}>1 Panel</Text>
           </View>
         </View>
 
-        <View style={styles.signatureButtonRow}>
-          <TouchableOpacity
-            style={styles.clearButton}
-            onPress={handleClearSignature}
-          >
-            <Text style={styles.clearButtonText}>Clear Signature</Text>
-          </TouchableOpacity>
+        <View style={styles.tasksSection}>
+          <FlatList
+            data={tasks}
+            renderItem={renderTaskItem}
+            keyExtractor={(item) => item._id || item.id.toString()}
+            scrollEnabled={false}
+          />
+        </View>
+
+        {/* Signature Section */}
+        <View style={styles.signatureSection}>
+          <Text style={styles.signatureTitle}>Customer Signature</Text>
 
           <TouchableOpacity
-            style={styles.saveButton}
-            onPress={handleSaveSignature}
+            style={styles.signaturePad}
+            onPress={handleOpenSignatureModal}
           >
-            <Text style={styles.saveButtonText}>Save Signature</Text>
+            {isSigned && signatureImage ? (
+              <View style={styles.signaturePlaceholder}>
+                {(() => {
+                  try {
+                    const parsedPaths = JSON.parse(signatureImage);
+                    return (
+                      <View style={styles.signatureDisplayCanvas}>
+                        {parsedPaths.map((path, pathIndex) => {
+                          const pathElements = [];
+                          for (let i = 0; i < path.length - 1; i++) {
+                            const point1 = path[i];
+                            const point2 = path[i + 1];
+                            const dx = point2.x - point1.x;
+                            const dy = point2.y - point1.y;
+                            const distance = Math.sqrt(dx * dx + dy * dy);
+                            const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+
+                            pathElements.push(
+                              <View
+                                key={`line-${pathIndex}-${i}`}
+                                style={{
+                                  position: "absolute",
+                                  left: point1.x,
+                                  top: point1.y,
+                                  width: distance,
+                                  height: 2,
+                                  backgroundColor: "#000000",
+                                  transform: [{ rotate: `${angle}deg` }, { translateY: -1 }],
+                                  transformOrigin: "0 0",
+                                }}
+                              />
+                            );
+                          }
+                          return <View key={`path-${pathIndex}`}>{pathElements}</View>;
+                        })}
+                      </View>
+                    );
+                  } catch (e) {
+                    return (
+                      <Text style={styles.signatureText}>Signature captured</Text>
+                    );
+                  }
+                })()}
+              </View>
+            ) : isSigned ? (
+              <View style={styles.signaturePlaceholder}>
+                <Ionicons name="checkmark-circle" size={48} color="#16a34a" />
+                <Text style={styles.signatureText}>Signature captured</Text>
+              </View>
+            ) : (
+              <View style={styles.signaturePlaceholder}>
+                <Ionicons name="create-outline" size={40} color="#d1d5db" />
+                <Text style={styles.signatureText}>
+                  Tap to sign here to confirm task completion
+                </Text>
+              </View>
+            )}
           </TouchableOpacity>
         </View>
-      </View>
 
-      {/* Complete Order Button */}
-      <TouchableOpacity
-        style={styles.completeButton}
-        onPress={handleCompleteOrder}
-      >
-        <Text style={styles.completeButtonText}>Complete Order</Text>
-      </TouchableOpacity>
+        {/* Signature Canvas Modal */}
+        <Modal
+          visible={showSignatureModal}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={handleCloseSignatureModal}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Draw Your Signature</Text>
+              <TouchableOpacity onPress={handleCloseSignatureModal}>
+                <Ionicons name="close" size={24} color="#1f2937" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.instructionBox}>
+              <Ionicons name="information-circle" size={16} color="#2563eb" />
+              <Text style={styles.instructionText}>
+                Sign in the box below to confirm
+              </Text>
+            </View>
+
+            <View
+              ref={canvasRef}
+              style={styles.canvasContainer}
+              {...(panResponderRef.current?.panHandlers || {})}
+            >
+              <View style={styles.canvas}>
+                {/* Draw completed paths as black strokes */}
+                {paths.map((path, pathIndex) => {
+                  const pathElements = [];
+                  for (let i = 0; i < path.length - 1; i++) {
+                    const point1 = path[i];
+                    const point2 = path[i + 1];
+                    const dx = point2.x - point1.x;
+                    const dy = point2.y - point1.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+
+                    pathElements.push(
+                      <View
+                        key={`line-${pathIndex}-${i}`}
+                        style={{
+                          position: "absolute",
+                          left: point1.x,
+                          top: point1.y,
+                          width: distance,
+                          height: 3,
+                          backgroundColor: "#000000",
+                          transform: [{ rotate: `${angle}deg` }, { translateY: -1.5 }],
+                          transformOrigin: "0 0",
+                        }}
+                      />
+                    );
+                  }
+                  return <View key={`path-${pathIndex}`}>{pathElements}</View>;
+                })}
+                {/* Draw current path being drawn in real-time */}
+                {currentPath.length > 1 &&
+                  currentPath.map((point, pointIndex) => {
+                    if (pointIndex === 0) return null;
+                    const point1 = currentPath[pointIndex - 1];
+                    const point2 = point;
+                    const dx = point2.x - point1.x;
+                    const dy = point2.y - point1.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+
+                    return (
+                      <View
+                        key={`current-line-${pointIndex}`}
+                        style={{
+                          position: "absolute",
+                          left: point1.x,
+                          top: point1.y,
+                          width: distance,
+                          height: 3,
+                          backgroundColor: "#000000",
+                          transform: [{ rotate: `${angle}deg` }, { translateY: -1.5 }],
+                          transformOrigin: "0 0",
+                        }}
+                      />
+                    );
+                  })}
+              </View>
+            </View>
+
+            <View style={styles.canvasButtonRow}>
+              <TouchableOpacity
+                style={styles.clearCanvasButton}
+                onPress={handleClearCanvasSignature}
+              >
+                <Text style={styles.clearCanvasButtonText}>Clear</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.saveCanvasButton}
+                onPress={handleSaveCanvasSignature}
+              >
+                <Text style={styles.saveCanvasButtonText}>Save Signature</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
+        {/* Complete Order Button */}
+        {/* <TouchableOpacity
+          style={styles.completeButton}
+          onPress={handleCompleteOrder}
+        >
+          <Text style={styles.completeButtonText}>Complete Order</Text>
+        </TouchableOpacity> */}
+
+        {/* Complete Order Button */}
+        <TouchableOpacity
+          style={styles.completeButton}
+          onPress={handleCompleteOrder}
+        >
+          <Text style={styles.completeButtonText}>Complete Order</Text>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -372,7 +597,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   signaturePad: {
-    marginBottom: 16,
+    marginBottom: 0,
   },
   signaturePlaceholder: {
     backgroundColor: "#fff",
@@ -418,6 +643,97 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   saveButtonText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#fff",
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: "#fff",
+    paddingTop: 16,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e5e7eb",
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1f2937",
+  },
+  instructionBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginHorizontal: 16,
+    marginVertical: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: "#eff6ff",
+    borderLeftWidth: 4,
+    borderLeftColor: "#2563eb",
+    borderRadius: 6,
+    gap: 8,
+  },
+  instructionText: {
+    fontSize: 13,
+    color: "#1e40af",
+    fontWeight: "500",
+    flex: 1,
+  },
+  canvasContainer: {
+    flex: 1,
+    marginHorizontal: 16,
+    marginBottom: 16,
+    backgroundColor: "#f9fafb",
+    borderWidth: 2,
+    borderColor: "#e5e7eb",
+    borderRadius: 8,
+    overflow: "hidden",
+  },
+  canvas: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  signatureDisplayCanvas: {
+    width: "100%",
+    height: 200,
+    backgroundColor: "#fff",
+    position: "relative",
+  },
+  canvasButtonRow: {
+    flexDirection: "row",
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingBottom: 24,
+  },
+  clearCanvasButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderWidth: 2,
+    borderColor: "#fca5a5",
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  clearCanvasButtonText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#dc2626",
+  },
+  saveCanvasButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: "#2563eb",
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  saveCanvasButtonText: {
     fontSize: 13,
     fontWeight: "600",
     color: "#fff",

@@ -75,17 +75,56 @@ export const apiClient = {
   },
 
   async changeUserPassword(id, passwordData) {
-    const response = await fetch(
-      `${API_BASE_URL}/users/${id}/change-password`,
-      {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(passwordData),
-      }
-    );
+    try {
+      // Get token from AsyncStorage for authentication
+      const AsyncStorage = require("@react-native-async-storage/async-storage").default;
+      const token = await AsyncStorage.getItem("token");
 
-    if (!response.ok) throw new Error("Failed to update password");
-    return response.json();
+      const headers = {
+        "Content-Type": "application/json",
+      };
+
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      console.log("Making password change request to:", `${API_BASE_URL}/users/${id}/change-password`);
+      console.log("Headers:", headers);
+      console.log("Password data:", passwordData);
+
+      const response = await fetch(
+        `${API_BASE_URL}/users/${id}/change-password`,
+        {
+          method: "PUT",
+          headers: headers,
+          body: JSON.stringify(passwordData),
+        }
+      );
+
+      console.log("Response status:", response.status);
+      console.log("Response ok:", response.ok);
+
+      if (!response.ok) {
+        let errorMessage = "Failed to update password";
+        try {
+          const errorData = await response.json();
+          console.error("Error response data:", errorData);
+          errorMessage = errorData.message || errorData.error || errorMessage;
+        } catch (e) {
+          const errorText = await response.text();
+          console.error("Error response text:", errorText);
+          errorMessage = errorText || errorMessage;
+        }
+        throw new Error(errorMessage);
+      }
+
+      const result = await response.json();
+      console.log("Password change response:", result);
+      return result;
+    } catch (error) {
+      console.error("Password change API error:", error);
+      throw error;
+    }
   },
 
   async deleteUser(id) {

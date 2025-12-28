@@ -23,7 +23,7 @@ export default function HomeScreen({ navigation }) {
       const userJson = await AsyncStorage.getItem("user");
       const user = userJson ? JSON.parse(userJson) : null;
       const userId = user?._id;
-      console.log("LocalStorage - User ", user );
+      console.log("LocalStorage - User ", user);
 
       if (!userId) {
         setError("User ID not found");
@@ -37,7 +37,7 @@ export default function HomeScreen({ navigation }) {
         console.log("LocalStorage cleared - user not found");
         return;
       }
-// console.log(userId)
+      // console.log(userId)
       const data = await apiClient.getTasksByUserId(userId);
       // console.log("getTasksByUserId response:", data);
       const tasksArray = Array.isArray(data) ? data : data?.tasks || [];
@@ -200,7 +200,7 @@ export default function HomeScreen({ navigation }) {
         await AsyncStorage.setItem("projects", JSON.stringify([]));
         console.log("LocalStorage cleared due to error");
       } catch (e) {
-        /* ignore */ 
+        /* ignore */
       }
       setError(err?.message || "Failed to fetch tasks");
       setTasks([]);
@@ -230,11 +230,11 @@ export default function HomeScreen({ navigation }) {
   };
 
   const statCards = [
-    { label: "Total", value: stats.totalTasks ?? 0, icon: "cart", color: "#2563eb" },
-    { label: "Todo", value: stats.todoTasks ?? 0, icon: "time", color: "#f59e0b" },
-    { label: "In Progress", value: stats.inProgressTasks ?? 0, icon: "play", color: "#8b5cf6" },
-    { label: "Completed", value: stats.completedTasks ?? 0, icon: "checkmark", color: "#10b981" },
-    { label: "On Hold", value: stats.onHoldTasks ?? 0, icon: "pause", color: "#ef4444" },
+    { label: "Total Tasks", value: stats.totalTasks ?? 0, icon: "cart", color: "#2563eb" },
+    { label: "Todo Tasks", value: stats.todoTasks ?? 0, icon: "time", color: "#f59e0b" },
+    { label: "Tasks In Progress", value: stats.inProgressTasks ?? 0, icon: "play", color: "#8b5cf6" },
+    { label: "Tasks Completed", value: stats.completedTasks ?? 0, icon: "checkmark", color: "#10b981" },
+    { label: "Tasks On Hold", value: stats.onHoldTasks ?? 0, icon: "pause", color: "#ef4444" },
   ];
 
   return (
@@ -268,7 +268,7 @@ export default function HomeScreen({ navigation }) {
           </View>
         )}
 
-        <View style={styles.section}>
+        {/* <View style={styles.section}>
           <Text style={styles.sectionTitle}>Recent Tasks</Text>
 
           {error ? (
@@ -290,11 +290,12 @@ export default function HomeScreen({ navigation }) {
               <View key={task._id ?? i} style={styles.activityItem}>
                 <View style={[
                   styles.activityDot,
-                  { backgroundColor:
+                  {
+                    backgroundColor:
                       (task.status || "").toLowerCase().includes("complete") ? "#10b981" :
-                      (task.status || "").toLowerCase().includes("todo") ? "#f59e0b" :
-                      (task.status || "").toLowerCase().includes("hold") ? "#ef4444" :
-                      "#8b5cf6"
+                        (task.status || "").toLowerCase().includes("todo") ? "#f59e0b" :
+                          (task.status || "").toLowerCase().includes("hold") ? "#ef4444" :
+                            "#8b5cf6"
                   }
                 ]} />
                 <View style={styles.activityContent}>
@@ -304,7 +305,7 @@ export default function HomeScreen({ navigation }) {
               </View>
             ))
           )}
-        </View>
+        </View> */}
       </ScrollView>
     </SafeAreaView>
   );
