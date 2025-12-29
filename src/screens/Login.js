@@ -11,7 +11,7 @@ import {
   Platform,
   Keyboard,
   Animated,
-  SafeAreaView,
+  // SafeAreaView as SafeArea,
   ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -80,124 +80,124 @@ export default function LoginScreen({ setIsLoggedIn, navigation }) {
     }
   };
 
-  const handleForgotPassword = () => {
-    Alert.alert("Password Reset", "Check your email for reset instructions");
-  };
+  // const handleForgotPassword = () => {
+  //   Alert.alert("Password Reset", "Check your email for reset instructions");
+  // };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={{ flex: 1 }}
-      >
-        <ScrollView
-          ref={scrollViewRef}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          scrollEnabled={false}
-          keyboardShouldPersistTaps="handled"
-          bounces={false}
-        >
-          <View style={styles.content}>
-            <View style={styles.logoContainer}>
-              <View style={styles.logoBadge}>
-                <Ionicons name="clipboard-outline" size={36} color="#fff" />
-              </View>
-              <Text style={styles.appName}>TaskTrack</Text>
-              <Text style={styles.tagline}>
-                Your reliable companion for field operations
-              </Text>
+    // <SafeArea style={styles.container}>
+    // <KeyboardAvoidingView
+    //   behavior={Platform.OS === "ios" ? "padding" : "height"}
+    //   style={{ flex: 1 }}
+    // >
+    <ScrollView
+      ref={scrollViewRef}
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
+      scrollEnabled={false}
+      keyboardShouldPersistTaps="handled"
+      bounces={false}
+    >
+      <View style={styles.content}>
+        <View style={styles.logoContainer}>
+          <View style={styles.logoBadge}>
+            <Ionicons name="clipboard-outline" size={36} color="#fff" />
+          </View>
+          <Text style={styles.appName}>TaskTrack</Text>
+          <Text style={styles.tagline}>
+            Your reliable companion for field operations
+          </Text>
+        </View>
+
+        <View style={styles.form}>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Email Address</Text>
+            <View
+              style={[
+                styles.inputContainer,
+                emailFocused && styles.inputContainerFocused,
+              ]}
+            >
+              <Ionicons
+                name="mail-outline"
+                size={20}
+                color={emailFocused ? "#2563eb" : "#6b7280"}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="admin@tasktrack.com"
+                placeholderTextColor="#d1d5db"
+                value={email}
+                onChangeText={setEmail}
+                onFocus={handleEmailFocus}
+                onBlur={handleBlur}
+                keyboardType="email-address"
+                editable={!loading}
+                autoCapitalize="none"
+              />
             </View>
+          </View>
 
-            <View style={styles.form}>
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Email Address</Text>
-                <View
-                  style={[
-                    styles.inputContainer,
-                    emailFocused && styles.inputContainerFocused,
-                  ]}
-                >
-                  <Ionicons
-                    name="mail-outline"
-                    size={20}
-                    color={emailFocused ? "#2563eb" : "#6b7280"}
-                  />
-                  <TextInput
-                    style={styles.input}
-                    placeholder="admin@tasktrack.com"
-                    placeholderTextColor="#d1d5db"
-                    value={email}
-                    onChangeText={setEmail}
-                    onFocus={handleEmailFocus}
-                    onBlur={handleBlur}
-                    keyboardType="email-address"
-                    editable={!loading}
-                    autoCapitalize="none"
-                  />
-                </View>
-              </View>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Password</Text>
-                <View
-                  style={[
-                    styles.inputContainer,
-                    passwordFocused && styles.inputContainerFocused,
-                  ]}
-                >
-                  <Ionicons
-                    name="lock-closed-outline"
-                    size={20}
-                    color={passwordFocused ? "#2563eb" : "#6b7280"}
-                  />
-                  <TextInput
-                    style={styles.input}
-                    placeholder="••••••••"
-                    placeholderTextColor="#d1d5db"
-                    value={password}
-                    onChangeText={setPassword}
-                    onFocus={handlePasswordFocus}
-                    onBlur={handleBlur}
-                    secureTextEntry={!showPassword}
-                    editable={!loading}
-                  />
-                  <TouchableOpacity
-                    onPress={() => setShowPassword(!showPassword)}
-                    disabled={loading}
-                  >
-                    <Ionicons
-                      name={showPassword ? "eye-outline" : "eye-off-outline"}
-                      size={20}
-                      color={passwordFocused ? "#2563eb" : "#6b7280"}
-                    />
-                  </TouchableOpacity>
-                </View>
-              </View>
-
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Password</Text>
+            <View
+              style={[
+                styles.inputContainer,
+                passwordFocused && styles.inputContainerFocused,
+              ]}
+            >
+              <Ionicons
+                name="lock-closed-outline"
+                size={20}
+                color={passwordFocused ? "#2563eb" : "#6b7280"}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="••••••••"
+                placeholderTextColor="#d1d5db"
+                value={password}
+                onChangeText={setPassword}
+                onFocus={handlePasswordFocus}
+                onBlur={handleBlur}
+                secureTextEntry={!showPassword}
+                editable={!loading}
+              />
               <TouchableOpacity
-                style={[
-                  styles.loginButton,
-                  loading && styles.loginButtonDisabled,
-                ]}
-                onPress={handleLogin}
+                onPress={() => setShowPassword(!showPassword)}
                 disabled={loading}
-                activeOpacity={0.85}
               >
-                {loading ? (
-                  <ActivityIndicator color="#fff" size="small" />
-                ) : (
-                  <Text style={styles.loginButtonText}>Log In</Text>
-                )}
+                <Ionicons
+                  name={showPassword ? "eye-outline" : "eye-off-outline"}
+                  size={20}
+                  color={passwordFocused ? "#2563eb" : "#6b7280"}
+                />
               </TouchableOpacity>
+            </View>
+          </View>
 
-              <View style={styles.footerContainer}>
-                <Text style={styles.footerText}>
-                  Secure. Fast. Reliable.
-                </Text>
-              </View>
+          <TouchableOpacity
+            style={[
+              styles.loginButton,
+              loading && styles.loginButtonDisabled,
+            ]}
+            onPress={handleLogin}
+            disabled={loading}
+            activeOpacity={0.85}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <Text style={styles.loginButtonText}>Log In</Text>
+            )}
+          </TouchableOpacity>
 
-              {/* <TouchableOpacity
+          <View style={styles.footerContainer}>
+            <Text style={styles.footerText}>
+              Secure. Fast. Reliable.
+            </Text>
+          </View>
+
+          {/* <TouchableOpacity
             onPress={() => navigation.navigate("Register")}
             disabled={loading}
           >
@@ -209,11 +209,11 @@ export default function LoginScreen({ setIsLoggedIn, navigation }) {
           <TouchableOpacity onPress={handleForgotPassword} disabled={loading}>
             <Text style={styles.forgotPasswordLink}>Forgot Password?</Text>
           </TouchableOpacity> */}
-            </View>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+        </View>
+      </View>
+    </ScrollView>
+    // </KeyboardAvoidingView>
+    // </SafeAreaView>
   );
 }
 
