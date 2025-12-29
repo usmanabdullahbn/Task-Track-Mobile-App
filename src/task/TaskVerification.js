@@ -1,6 +1,6 @@
 "use client"
 
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from "react-native"
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ActivityIndicator } from "react-native"
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -15,9 +15,11 @@ export default function TaskVerification({ navigation, route }) {
   const [locationVerified, setLocationVerified] = useState(false);
   const [project, setProject] = useState(null);
   const [distance, setDistance] = useState(null);
+  const [isVerifying, setIsVerifying] = useState(true);
 
   const verifyLocation = async () => {
     if (!project) return;
+    setIsVerifying(true);
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
@@ -44,6 +46,9 @@ export default function TaskVerification({ navigation, route }) {
       }
     } catch (error) {
       console.error("Error verifying location:", error);
+      setLocationVerified(false);
+    } finally {
+      setIsVerifying(false);
     }
   };
 
@@ -112,7 +117,7 @@ export default function TaskVerification({ navigation, route }) {
         <View style={styles.backButtonContainer}>
           <BackButton onPress={() => navigation.goBack()} />
         </View>
-        <TouchableOpacity onPress={verifyLocation} style={styles.reloadButton}>
+        <TouchableOpacity onPress={verifyLocation} style={[styles.reloadButton, locationVerified && styles.reloadButtonHidden]}>
           <View style={styles.reloadCircle}>
             <Ionicons name="reload" size={20} color="#2563eb" />
           </View>
@@ -123,7 +128,13 @@ export default function TaskVerification({ navigation, route }) {
       <View style={styles.content}>
         <View style={styles.checkmarkContainer}>
           <View style={styles.checkmarkCircle}>
-            <Ionicons name="checkmark" size={48} color="#2563eb" />
+            {isVerifying ? (
+              <ActivityIndicator size="large" color="#2563eb" />
+            ) : locationVerified ? (
+              <Ionicons name="checkmark" size={48} color="#2563eb" />
+            ) : (
+              <Ionicons name="reload" size={48} color="#6b7280" />
+            )}
           </View>
         </View>
 
@@ -185,6 +196,9 @@ const styles = StyleSheet.create({
   },
   reloadButton: {
     // centered by justifyContent center
+  },
+  reloadButtonHidden: {
+    opacity: 0,
   },
   reloadCircle: {
     width: 40,
