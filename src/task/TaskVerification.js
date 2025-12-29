@@ -76,10 +76,11 @@ export default function TaskVerification({ navigation, route }) {
   }, [task]);
 
   useEffect(() => {
-    if (project) {
-      verifyLocation();
-    }
-  }, [project]);
+    // Reset state when task changes
+    setLocationVerified(false);
+    setDistance(null);
+    setProject(null);
+  }, [taskId]);
 
   // Haversine formula to calculate distance
   const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
@@ -135,6 +136,14 @@ export default function TaskVerification({ navigation, route }) {
             : "You must be at the project location to proceed."
           }
         </Text>
+
+        {distance !== null && (
+          <Text style={styles.distanceText}>
+            {distance >= 1000
+              ? `${(distance / 1000).toFixed(2)} km`
+              : `${distance.toFixed(2)} m`}
+          </Text>
+        )}
 
         {task && (
           <View style={styles.taskInfo}>
@@ -266,5 +275,12 @@ const styles = StyleSheet.create({
   },
   disabledText: {
     color: "#9ca3af",
+  },
+  distanceText: {
+    fontSize: 16,
+    color: "#374151",
+    marginTop: 8,
+    fontWeight: "600",
+    textAlign: "center",
   },
 })
