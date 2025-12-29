@@ -101,7 +101,7 @@ export default function TaskStart({ navigation, route }) {
       // Append the photo
       const photoName = photo.split('/').pop();
       const photoType = `image/${photoName.split('.').pop()}`;
-      formData.append('photo', {
+      formData.append('files', {
         uri: photo,
         name: photoName,
         type: photoType,
@@ -109,7 +109,8 @@ export default function TaskStart({ navigation, route }) {
 
       // Append comments
       formData.append('comments', comments);
-      formData.append('initialPhoto', true); // Mark this as initial photo from task start
+      formData.append('actual_start_time', new Date().toISOString());
+      formData.append('status', 'In Progress');
 
       // Update the task with photo and comments
       const updatedTask = await apiClient.updateTask(taskId, formData);
