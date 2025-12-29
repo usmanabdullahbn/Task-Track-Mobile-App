@@ -114,14 +114,7 @@ export default function TaskVerification({ navigation, route }) {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.backButtonContainer}>
-          <BackButton onPress={() => navigation.goBack()} />
-        </View>
-        <TouchableOpacity onPress={verifyLocation} style={[styles.reloadButton, locationVerified && styles.reloadButtonHidden]}>
-          <View style={styles.reloadCircle}>
-            <Ionicons name="reload" size={20} color="#2563eb" />
-          </View>
-        </TouchableOpacity>
+        <BackButton onPress={() => navigation.goBack()} />
       </View>
       <Text style={styles.mainHeading}>Task Verification</Text>
 
@@ -163,15 +156,24 @@ export default function TaskVerification({ navigation, route }) {
           </View>
         )}
 
-        <TouchableOpacity
-          style={[styles.startButton, !locationVerified && styles.disabledButton]}
-          onPress={handleStartTask}
-          disabled={!locationVerified}
-        >
-          <Text style={[styles.startButtonText, !locationVerified && styles.disabledText]}>
-            {locationVerified ? "Start Task" : "Location Required"}
-          </Text>
-        </TouchableOpacity>
+        {locationVerified ? (
+          <TouchableOpacity
+            style={styles.startButton}
+            onPress={handleStartTask}
+          >
+            <Text style={styles.startButtonText}>Start Task</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={styles.reloadButtonMiddle}
+            onPress={verifyLocation}
+          >
+            <View style={styles.reloadCircleMiddle}>
+              <Ionicons name="reload" size={24} color="#2563eb" />
+            </View>
+            <Text style={styles.reloadButtonText}>Retry Location Verification</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </SafeAreaView>
   )
@@ -193,22 +195,6 @@ const styles = StyleSheet.create({
   backButtonContainer: {
     position: "absolute",
     left: 16,
-  },
-  reloadButton: {
-    // centered by justifyContent center
-  },
-  reloadButtonHidden: {
-    opacity: 0,
-  },
-  reloadCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#eff6ff",
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#2563eb",
   },
   mainHeading: {
     fontSize: 24,
@@ -295,6 +281,27 @@ const styles = StyleSheet.create({
     color: "#374151",
     marginTop: 8,
     fontWeight: "600",
+    textAlign: "center",
+  },
+  reloadButtonMiddle: {
+    alignItems: "center",
+    marginTop: 12,
+  },
+  reloadCircleMiddle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "#eff6ff",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "#2563eb",
+    marginBottom: 8,
+  },
+  reloadButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#2563eb",
     textAlign: "center",
   },
 })
