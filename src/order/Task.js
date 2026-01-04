@@ -144,9 +144,10 @@ export default function TaskDetail({ route, navigation }) {
     try {
       // Capture the signature canvas as JPEG image
       console.log("Capturing signature canvas...");
-      const signatureImageUri = await captureRef(signatureCanvasRef, {
+      const signatureImageUri = await captureRef(signatureCanvasRef.current, {
         format: 'jpg',
         quality: 0.8,
+        result: 'tmpfile', // safer on Android
       });
       console.log("Signature captured as image:", signatureImageUri);
 
@@ -158,6 +159,7 @@ export default function TaskDetail({ route, navigation }) {
       setShowSignatureModal(false);
       setPaths([]);
       setCurrentPath([]);
+      currentPathRef.current = [];
     } catch (error) {
       console.error("Error capturing signature:", error);
       Alert.alert("Error", "Failed to capture signature");
@@ -453,6 +455,7 @@ export default function TaskDetail({ route, navigation }) {
             >
               <View 
                 ref={signatureCanvasRef}
+                collapsable={false}
                 style={styles.canvas}
               >
                 {console.log("Rendering paths:", paths.length, "paths")}
