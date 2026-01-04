@@ -16,6 +16,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { captureRef } from 'react-native-view-shot';
 import { apiClient } from "../lib/api-client";
 import BackButton from "../components/BackButton";
 
@@ -29,11 +30,12 @@ export default function TaskDetail({ route, navigation }) {
   const [isSigned, setIsSigned] = useState(false);
   const [showSignatureModal, setShowSignatureModal] = useState(false);
   const [signatureImage, setSignatureImage] = useState(null);
+  const [signatureImageUri, setSignatureImageUri] = useState(null);
   const [paths, setPaths] = useState([]);
   const [currentPath, setCurrentPath] = useState([]);
 
-  const signaturePadRef = useRef(null);
-  const canvasRef = useRef(null);
+  const signatureDisplayRef = useRef(null);
+  const signatureCanvasRef = useRef(null);
   const currentPathRef = useRef([]);
 
   const orderId = route?.params?.orderId;
@@ -133,18 +135,33 @@ export default function TaskDetail({ route, navigation }) {
     currentPathRef.current = [];
   };
 
-  const handleSaveCanvasSignature = () => {
+  const handleSaveCanvasSignature = async () => {
     if (paths.length === 0 && currentPath.length === 0) {
       Alert.alert("Empty Signature", "Please draw your signature first");
       return;
     }
-    // Store the signature paths
-    const signatureData = JSON.stringify(paths);
-    setSignatureImage(signatureData);
-    setIsSigned(true);
-    setShowSignatureModal(false);
-    setPaths([]);
-    setCurrentPath([]);
+
+    try {
+      // Capture the signature canvas as JPEG image
+      console.log("Capturing signature canvas...");
+      const signatureImageUri = await captureRef(signatureCanvasRef, {
+        format: 'jpg',
+        quality: 0.8,
+      });
+      console.log("Signature captured as image:", signatureImageUri);
+
+      // Store both the image URI and the JSON paths
+      const signatureData = JSON.stringify(paths);
+      setSignatureImage(signatureData);
+      setSignatureImageUri(signatureImageUri); // Store the image URI
+      setIsSigned(true);
+      setShowSignatureModal(false);
+      setPaths([]);
+      setCurrentPath([]);
+    } catch (error) {
+      console.error("Error capturing signature:", error);
+      Alert.alert("Error", "Failed to capture signature");
+    }
   };
 
   const handleCloseSignatureModal = () => {
@@ -168,8 +185,8 @@ export default function TaskDetail({ route, navigation }) {
         return;
       }
 
-      // Check if signature is required and captured
-      if (!isSigned || !signatureImage) {
+      // Check if signature image URI exists
+      if (!signatureImageUri) {
         Alert.alert("Signature Required", "Please capture a signature before completing the order.");
         return;
       }
@@ -178,16 +195,15 @@ export default function TaskDetail({ route, navigation }) {
       const formData = new FormData();
       formData.append('status', 'Completed');
 
-      // Add signature file like in task start
-      const base64Signature = btoa ? btoa(signatureImage) : Buffer.from(signatureImage, 'utf8').toString('base64');
-      const dataUrl = `data:application/json;base64,${base64Signature}`;
+      // Add the already captured signature image file
+      console.log("Using captured signature image:", signatureImageUri);
+      const fileName = `signature_${orderId}_${Date.now()}.jpg`;
       formData.append('files', {
-        uri: dataUrl,
-        name: `signature_${orderId}_${Date.now()}.json`,
-        type: 'application/json'
+        uri: signatureImageUri,
+        name: fileName,
+        type: 'image/jpeg'
       });
-
-      console.log("FormData created with signature file");
+      console.log("FormData created with signature image");
 
       // Update order with signature file using regular updateOrder
       console.log("Calling updateOrder...");
@@ -202,6 +218,7 @@ export default function TaskDetail({ route, navigation }) {
         if (orderIndex !== -1) {
           orders[orderIndex].status = "Completed";
           orders[orderIndex].signature = signatureImage;
+          orders[orderIndex].signatureImageUri = signatureImageUri;
           await AsyncStorage.setItem("orders", JSON.stringify(orders));
         }
       }
@@ -316,7 +333,10 @@ export default function TaskDetail({ route, navigation }) {
                   try {
                     const parsedPaths = JSON.parse(signatureImage);
                     return (
-                      <View style={styles.signatureDisplayCanvas}>
+                      <View 
+                        ref={signatureDisplayRef}
+                        style={styles.signatureDisplayCanvas}
+                      >
                         {parsedPaths.map((path, pathIndex) => {
                           const pathElements = [];
                           for (let i = 0; i < path.length - 1; i++) {
@@ -392,7 +412,6 @@ export default function TaskDetail({ route, navigation }) {
             </View>
 
             <View
-              ref={canvasRef}
               style={styles.canvasContainer}
               onTouchStart={(event) => {
                 console.log("Direct touch start");
@@ -432,7 +451,10 @@ export default function TaskDetail({ route, navigation }) {
                 }
               }}
             >
-              <View style={styles.canvas}>
+              <View 
+                ref={signatureCanvasRef}
+                style={styles.canvas}
+              >
                 {console.log("Rendering paths:", paths.length, "paths")}
                 {/* Draw completed paths as black strokes */}
                 {paths.map((path, pathIndex) => {
