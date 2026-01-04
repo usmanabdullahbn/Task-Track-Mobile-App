@@ -268,7 +268,7 @@ export default function HomeScreen({ navigation }) {
           </View>
         )}
 
-        {/* <View style={styles.section}>
+        <View style={styles.section}>
           <Text style={styles.sectionTitle}>Recent Tasks</Text>
 
           {error ? (
@@ -287,7 +287,7 @@ export default function HomeScreen({ navigation }) {
             </View>
           ) : (
             tasks.slice(0, 12).map((task, i) => (
-              <View key={task._id ?? i} style={styles.activityItem}>
+              <TouchableOpacity key={task._id ?? i} style={styles.activityItem} onPress={() => navigation.navigate("Tasks", { screen: "TaskVerification", params: { taskId: task._id, task: task } })}>
                 <View style={[
                   styles.activityDot,
                   {
@@ -302,10 +302,10 @@ export default function HomeScreen({ navigation }) {
                   <Text style={styles.activityTitle}>{task.title || task.name || `Task #${task._id ?? i}`}</Text>
                   <Text style={styles.activityTime}>{task.status || "Unknown"}</Text>
                 </View>
-              </View>
+              </TouchableOpacity>
             ))
           )}
-        </View> */}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );

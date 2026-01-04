@@ -13,10 +13,10 @@ import {
   ScrollView,
   Dimensions,
   Alert,
-  PanResponder,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { apiClient } from "../lib/api-client";
 import BackButton from "../components/BackButton";
 
 const { width: screenWidth } = Dimensions.get("window");
@@ -34,7 +34,7 @@ export default function TaskDetail({ route, navigation }) {
 
   const signaturePadRef = useRef(null);
   const canvasRef = useRef(null);
-  const panResponderRef = useRef(null);
+  const currentPathRef = useRef([]);
 
   const orderId = route?.params?.orderId;
 
@@ -114,7 +114,8 @@ export default function TaskDetail({ route, navigation }) {
           {
             text: "Replace",
             onPress: () => {
-              pathsRef.current = [];
+              setPaths([]);
+              setCurrentPath([]);
               currentPathRef.current = [];
               setShowSignatureModal(true);
             },
@@ -129,30 +130,8 @@ export default function TaskDetail({ route, navigation }) {
   const handleClearCanvasSignature = () => {
     setPaths([]);
     setCurrentPath([]);
+    currentPathRef.current = [];
   };
-
-  useEffect(() => {
-    if (showSignatureModal) {
-      panResponderRef.current = PanResponder.create({
-        onStartShouldSetPanResponder: () => true,
-        onMoveShouldSetPanResponder: () => true,
-        onPanResponderGrant: (evt) => {
-          const { locationX, locationY } = evt.nativeEvent;
-          setCurrentPath([{ x: locationX, y: locationY }]);
-        },
-        onPanResponderMove: (evt) => {
-          const { locationX, locationY } = evt.nativeEvent;
-          setCurrentPath((prev) => [...prev, { x: locationX, y: locationY }]);
-        },
-        onPanResponderRelease: () => {
-          if (currentPath.length > 0) {
-            setPaths((prev) => [...prev, currentPath]);
-            setCurrentPath([]);
-          }
-        },
-      });
-    }
-  }, [showSignatureModal, currentPath]);
 
   const handleSaveCanvasSignature = () => {
     if (paths.length === 0 && currentPath.length === 0) {
@@ -174,9 +153,65 @@ export default function TaskDetail({ route, navigation }) {
     setShowSignatureModal(false);
   };
 
-  const handleCompleteOrder = () => {
-    alert("Order completed!");
-    navigation.navigate("Home", { screen: "HomeMain" });
+  const handleCompleteOrder = async () => {
+    try {
+      // Check if all tasks are completed
+      console.log("Checking task completion. Tasks:", tasks);
+      const allTasksCompleted = tasks.every(task => {
+        console.log(`Task ${task.id} status:`, task.status);
+        return task.status === "Completed";
+      });
+      console.log("All tasks completed:", allTasksCompleted);
+
+      if (!allTasksCompleted) {
+        Alert.alert("Incomplete Tasks", "All tasks must be completed before completing the order.");
+        return;
+      }
+
+      // Check if signature is required and captured
+      if (!isSigned || !signatureImage) {
+        Alert.alert("Signature Required", "Please capture a signature before completing the order.");
+        return;
+      }
+
+      // Prepare FormData for order update with signature file
+      const formData = new FormData();
+      formData.append('status', 'Completed');
+
+      // Add signature file like in task start
+      const base64Signature = btoa ? btoa(signatureImage) : Buffer.from(signatureImage, 'utf8').toString('base64');
+      const dataUrl = `data:application/json;base64,${base64Signature}`;
+      formData.append('files', {
+        uri: dataUrl,
+        name: `signature_${orderId}_${Date.now()}.json`,
+        type: 'application/json'
+      });
+
+      console.log("FormData created with signature file");
+
+      // Update order with signature file using regular updateOrder
+      console.log("Calling updateOrder...");
+      await apiClient.updateOrder(orderId, formData);
+      console.log("Order updated successfully");
+
+      // Update local storage
+      const storedOrders = await AsyncStorage.getItem("orders");
+      if (storedOrders) {
+        const orders = JSON.parse(storedOrders);
+        const orderIndex = orders.findIndex(order => (order._id || order.id) === orderId);
+        if (orderIndex !== -1) {
+          orders[orderIndex].status = "Completed";
+          orders[orderIndex].signature = signatureImage;
+          await AsyncStorage.setItem("orders", JSON.stringify(orders));
+        }
+      }
+
+      Alert.alert("Success", "Order completed successfully!");
+      navigation.navigate("Home", { screen: "HomeMain" });
+    } catch (error) {
+      console.error("Error completing order:", error);
+      Alert.alert("Error", "Failed to complete order. Please try again.");
+    }
   };
 
   const renderTaskItem = ({ item }) => (
@@ -338,7 +373,6 @@ export default function TaskDetail({ route, navigation }) {
         {/* Signature Canvas Modal */}
         <Modal
           visible={showSignatureModal}
-          transparent={true}
           animationType="slide"
           onRequestClose={handleCloseSignatureModal}
         >
@@ -360,11 +394,49 @@ export default function TaskDetail({ route, navigation }) {
             <View
               ref={canvasRef}
               style={styles.canvasContainer}
-              {...(panResponderRef.current?.panHandlers || {})}
+              onTouchStart={(event) => {
+                console.log("Direct touch start");
+                event.preventDefault(); // Prevent default touch behavior
+                const touch = event.nativeEvent.touches[0];
+                if (touch) {
+                  // Use locationX/locationY which are relative to the View
+                  const relativeX = touch.locationX;
+                  const relativeY = touch.locationY;
+                  const newPoint = { x: relativeX, y: relativeY };
+                  console.log("Direct touch point:", newPoint);
+                  currentPathRef.current = [newPoint];
+                  setCurrentPath([newPoint]);
+                }
+              }}
+              onTouchMove={(event) => {
+                event.preventDefault();
+                if (currentPathRef.current.length > 0) {
+                  const touch = event.nativeEvent.touches[0];
+                  if (touch) {
+                    const relativeX = touch.locationX;
+                    const relativeY = touch.locationY;
+                    const newPoint = { x: relativeX, y: relativeY };
+                    currentPathRef.current = [...currentPathRef.current, newPoint];
+                    setCurrentPath(prev => [...prev, newPoint]);
+                  }
+                }
+              }}
+              onTouchEnd={() => {
+                console.log("Direct touch end, currentPath length:", currentPathRef.current.length);
+                if (currentPathRef.current.length > 0) {
+                  const pathToAdd = [...currentPathRef.current];
+                  console.log("Adding completed path with", pathToAdd.length, "points");
+                  setPaths(prev => [...prev, pathToAdd]);
+                  currentPathRef.current = [];
+                  setCurrentPath([]);
+                }
+              }}
             >
               <View style={styles.canvas}>
+                {console.log("Rendering paths:", paths.length, "paths")}
                 {/* Draw completed paths as black strokes */}
                 {paths.map((path, pathIndex) => {
+                  console.log(`Rendering path ${pathIndex} with ${path.length} points`);
                   const pathElements = [];
                   for (let i = 0; i < path.length - 1; i++) {
                     const point1 = path[i];

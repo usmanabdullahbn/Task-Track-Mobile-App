@@ -134,6 +134,7 @@ export default function LoginScreen({ setIsLoggedIn, navigation }) {
                 keyboardType="email-address"
                 editable={!loading}
                 autoCapitalize="none"
+                returnKeyType="next"
               />
             </View>
           </View>
@@ -161,6 +162,8 @@ export default function LoginScreen({ setIsLoggedIn, navigation }) {
                 onBlur={handleBlur}
                 secureTextEntry={!showPassword}
                 editable={!loading}
+                returnKeyType="done"
+                onSubmitEditing={handleLogin}
               />
               <TouchableOpacity
                 onPress={() => setShowPassword(!showPassword)}
