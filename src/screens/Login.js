@@ -121,7 +121,7 @@ export default function LoginScreen({ setIsLoggedIn, navigation }) {
               <Ionicons
                 name="mail-outline"
                 size={20}
-                color={emailFocused ? "#2563eb" : "#6b7280"}
+                color={emailFocused ? "#00A73E" : "#6b7280"}
               />
               <TextInput
                 style={styles.input}
@@ -150,7 +150,7 @@ export default function LoginScreen({ setIsLoggedIn, navigation }) {
               <Ionicons
                 name="lock-closed-outline"
                 size={20}
-                color={passwordFocused ? "#2563eb" : "#6b7280"}
+                color={passwordFocused ? "#00A73E" : "#6b7280"}
               />
               <TextInput
                 style={styles.input}
@@ -172,7 +172,7 @@ export default function LoginScreen({ setIsLoggedIn, navigation }) {
                 <Ionicons
                   name={showPassword ? "eye-outline" : "eye-off-outline"}
                   size={20}
-                  color={passwordFocused ? "#2563eb" : "#6b7280"}
+                  color={passwordFocused ? "#00A73E" : "#6b7280"}
                 />
               </TouchableOpacity>
             </View>
@@ -243,11 +243,11 @@ const styles = StyleSheet.create({
     width: 70,
     height: 70,
     borderRadius: 16,
-    backgroundColor: "#2563eb",
+    backgroundColor: "#00A73E",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 20,
-    shadowColor: "#2563eb",
+    shadowColor: "#00A73E",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 8,
@@ -295,9 +295,9 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   inputContainerFocused: {
-    borderColor: "#2563eb",
+    borderColor: "#00A73E",
     borderWidth: 2,
-    shadowColor: "#2563eb",
+    shadowColor: "#00A73E",
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
@@ -309,13 +309,13 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   loginButton: {
-    backgroundColor: "#2563eb",
+    backgroundColor: "#00A73E",
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
     marginTop: 12,
-    shadowColor: "#2563eb",
+    shadowColor: "#00A73E",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,

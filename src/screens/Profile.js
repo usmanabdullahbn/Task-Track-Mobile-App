@@ -197,7 +197,7 @@ export default function ProfileScreen({ setIsLoggedIn }) {
           {profileItems.map((item, index) => (
             <View key={index} style={styles.profileItem}>
               <View style={styles.itemLeft}>
-                <Ionicons name={item.icon} size={20} color="#2563eb" />
+                <Ionicons name={item.icon} size={20} color="#00A73E" />
                 <Text style={styles.itemLabel}>{item.label}</Text>
               </View>
               <Text style={styles.itemValue}>{item.value}</Text>
@@ -432,11 +432,11 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: "#2563eb",
+    backgroundColor: "#00A73E",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 16,
-    shadowColor: "#2563eb",
+    shadowColor: "#00A73E",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
@@ -598,11 +598,11 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 12,
     borderRadius: 10,
-    backgroundColor: "#2563eb",
+    backgroundColor: "#00A73E",
     justifyContent: "center",
     alignItems: "center",
   },
-  submitButtonDisabled: { backgroundColor: "#bfdbfe", opacity: 0.7 },
+  submitButtonDisabled: { backgroundColor: "#d4edda", opacity: 0.7 }
   submitButtonText: {
     fontSize: 14,
     fontWeight: "600",

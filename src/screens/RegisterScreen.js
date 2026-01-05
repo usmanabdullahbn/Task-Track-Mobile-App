@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
     color: "#1f2937",
   },
   registerButton: {
-    backgroundColor: "#2563eb",
+    backgroundColor: "#00A73E",
     paddingVertical: 14,
     borderRadius: 8,
     alignItems: "center",
@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   loginLink: {
-    color: "#2563eb",
+    color: "#00A73E"
     fontSize: 14,
     textAlign: "center",
     marginTop: 16,

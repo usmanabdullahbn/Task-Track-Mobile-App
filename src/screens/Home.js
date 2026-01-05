@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { SafeAreaView, ScrollView, StyleSheet, Text, View, ActivityIndicator, TouchableOpacity } from "react-native";
+import { SafeAreaView, ScrollView, StyleSheet, Text, View, ActivityIndicator, TouchableOpacity, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { apiClient } from "../lib/api-client";
@@ -7,15 +7,20 @@ import ReloadButton from "../components/ReloadButton";
 
 export default function HomeScreen({ navigation }) {
   const [stats, setStats] = useState({
+    totalOrders: 0,
+    pendingOrders: 0,
+    inProgressOrders: 0,
     totalTasks: 0,
     todoTasks: 0,
     inProgressTasks: 0,
     completedTasks: 0,
     onHoldTasks: 0,
   });
+  const [orders, setOrders] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState("orders"); // "orders" or "tasks"
 
   const fetchTasksByUser = async () => {
     try {
@@ -28,7 +33,8 @@ export default function HomeScreen({ navigation }) {
       if (!userId) {
         setError("User ID not found");
         setTasks([]);
-        setStats({ totalTasks: 0, todoTasks: 0, inProgressTasks: 0, completedTasks: 0, onHoldTasks: 0 });
+        setOrders([]);
+        setStats({ totalOrders: 0, pendingOrders: 0, inProgressOrders: 0, totalTasks: 0, todoTasks: 0, inProgressTasks: 0, completedTasks: 0, onHoldTasks: 0 });
         setLoading(false);
         await AsyncStorage.setItem("tasks", JSON.stringify([])); // store empty
         await AsyncStorage.setItem("orders", JSON.stringify([])); // store empty orders
@@ -54,6 +60,11 @@ export default function HomeScreen({ navigation }) {
       let fetchedOrders = [];
       let fetchedAssets = [];
       let fetchedProjects = [];
+
+      // Initialize order stats variables
+      let totalOrders = 0;
+      let pendingOrders = 0;
+      let inProgressOrders = 0;
 
       // Extract unique order IDs from tasks and fetch orders
       const orderIds = [...new Set(
@@ -85,6 +96,31 @@ export default function HomeScreen({ navigation }) {
           } catch (e) {
             console.warn("Failed to save orders to storage:", e);
           }
+
+          // Calculate order stats
+          totalOrders = fetchedOrders.length;
+          pendingOrders = 0;
+          inProgressOrders = 0;
+          fetchedOrders.forEach(o => {
+            const st = (o.status || "").toString().toLowerCase();
+            if (st.includes("pending")) pendingOrders++;
+            else if (st.includes("progress") || st.includes("in progress")) inProgressOrders++;
+          });
+
+          // Log order stats
+          console.log("=== ORDER STATS ===");
+          console.log("Total Orders:", totalOrders);
+          console.log("Pending Orders:", pendingOrders);
+          console.log("In Progress Orders:", inProgressOrders);
+          console.log("==================");
+
+          // Update stats with order data
+          setStats(prevStats => ({
+            ...prevStats,
+            totalOrders,
+            pendingOrders,
+            inProgressOrders,
+          }));
         } catch (err) {
           console.error("Error fetching orders:", err);
         }
@@ -173,6 +209,9 @@ export default function HomeScreen({ navigation }) {
       });
 
       setStats({
+        totalOrders,
+        pendingOrders,
+        inProgressOrders,
         totalTasks,
         todoTasks: todo,
         inProgressTasks: inProgress,
@@ -180,6 +219,7 @@ export default function HomeScreen({ navigation }) {
         onHoldTasks: onHold,
       });
       setTasks(tasksArray);
+      setOrders(fetchedOrders);
       setError(null);
 
       // Log summary of all localStorage data
@@ -204,15 +244,102 @@ export default function HomeScreen({ navigation }) {
       }
       setError(err?.message || "Failed to fetch tasks");
       setTasks([]);
-      setStats({ totalTasks: 0, todoTasks: 0, inProgressTasks: 0, completedTasks: 0, onHoldTasks: 0 });
+      setOrders([]);
+      setStats({ totalOrders: 0, pendingOrders: 0, inProgressOrders: 0, totalTasks: 0, todoTasks: 0, inProgressTasks: 0, completedTasks: 0, onHoldTasks: 0 });
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchTasksByUser();
+    const initializeData = async () => {
+      await fetchTasksByUser();
+      // Load stored data after fetching is complete
+      await loadStoredData();
+    };
+    initializeData();
   }, []);
+
+  const loadStoredData = async () => {
+    try {
+      const storedOrders = await AsyncStorage.getItem("orders");
+      const storedTasks = await AsyncStorage.getItem("tasks");
+
+      if (storedOrders) {
+        const ordersList = JSON.parse(storedOrders);
+        setOrders(ordersList);
+        console.log("Loaded stored orders:", ordersList);
+
+        // Calculate order stats
+        let totalOrders = ordersList.length;
+        let pendingOrders = 0;
+        let inProgressOrders = 0;
+
+        ordersList.forEach(order => {
+          const status = (order.status || "").toString().toLowerCase();
+          if (status.includes("pending")) {
+            pendingOrders++;
+          } else if (status.includes("progress") || status.includes("in progress") || status.includes("in-progress")) {
+            inProgressOrders++;
+          }
+        });
+
+        // Log order stats from localStorage
+        console.log("=== ORDER STATS (from localStorage) ===");
+        console.log("Total Orders:", totalOrders);
+        console.log("Pending Orders:", pendingOrders);
+        console.log("In Progress Orders:", inProgressOrders);
+        console.log("========================================");
+
+        // Update stats with calculated order data
+        setStats(prevStats => ({
+          ...prevStats,
+          totalOrders,
+          pendingOrders,
+          inProgressOrders,
+        }));
+
+        console.log("Order stats calculated:", { totalOrders, pendingOrders, inProgressOrders });
+      }
+
+      if (storedTasks) {
+        const tasksList = JSON.parse(storedTasks);
+        setTasks(tasksList);
+        console.log("Loaded stored tasks:", tasksList);
+
+        // Calculate task stats
+        let totalTasks = tasksList.length;
+        let todo = 0, inProgress = 0, completed = 0, onHold = 0;
+
+        tasksList.forEach(task => {
+          const status = (task.status || "").toString().toLowerCase();
+          if (status.includes("todo")) {
+            todo++;
+          } else if (status.includes("progress") || status.includes("in progress") || status.includes("in-progress")) {
+            inProgress++;
+          } else if (status.includes("complete") || status.includes("completed") || status.includes("done")) {
+            completed++;
+          } else if (status.includes("hold") || status.includes("on hold") || status.includes("on-hold")) {
+            onHold++;
+          }
+        });
+
+        // Update stats with calculated task data
+        setStats(prevStats => ({
+          ...prevStats,
+          totalTasks,
+          todoTasks: todo,
+          inProgressTasks: inProgress,
+          completedTasks: completed,
+          onHoldTasks: onHold,
+        }));
+
+        console.log("Task stats calculated:", { totalTasks, todo, inProgress, completed, onHold });
+      }
+    } catch (err) {
+      console.error("Error loading stored data:", err);
+    }
+  };
 
   const handleReload = async () => {
     try {
@@ -229,83 +356,205 @@ export default function HomeScreen({ navigation }) {
     }
   };
 
+  // Helper function to get status color and background
+  const getStatusColor = (status) => {
+    const statusLower = (status || "").toLowerCase();
+    if (statusLower.includes("pending")) {
+      return { bg: "#fef3c7", color: "#d97706" };
+    } else if (statusLower.includes("progress") || statusLower.includes("in progress")) {
+      return { bg: "#dcfce7", color: "#00A73E" };
+    } else if (statusLower.includes("complete") || statusLower.includes("completed")) {
+      return { bg: "#dcfce7", color: "#059669" };
+    } else if (statusLower.includes("hold") || statusLower.includes("on-hold")) {
+      return { bg: "#fee2e2", color: "#dc2626" };
+    }
+    return { bg: "#f3f4f6", color: "#6b7280" };
+  };
+
   const statCards = [
-    { label: "Total Tasks", value: stats.totalTasks ?? 0, icon: "cart", color: "#2563eb" },
-    { label: "Todo Tasks", value: stats.todoTasks ?? 0, icon: "time", color: "#f59e0b" },
-    { label: "Tasks In Progress", value: stats.inProgressTasks ?? 0, icon: "play", color: "#8b5cf6" },
-    { label: "Tasks Completed", value: stats.completedTasks ?? 0, icon: "checkmark", color: "#10b981" },
-    { label: "Tasks On Hold", value: stats.onHoldTasks ?? 0, icon: "pause", color: "#ef4444" },
+    { label: "Total Order", value: stats.totalOrders ?? 0, icon: "cart", color: "#06b6d4", iconBg: "#00A73E" },
+    { label: "Pending Order", value: stats.pendingOrders ?? 0, icon: "time", color: "#f59e0b", iconBg: "#d97706" },
+    { label: "In Progress", value: stats.inProgressOrders ?? 0, icon: "play", color: "#8b5cf6", iconBg: "#7c3aed" },
+  ];
+
+  const taskStatCards = [
+    { label: "Total Tasks", value: stats.totalTasks ?? 0, icon: "cart", color: "#3b82f6", iconBg: "#00A73E" },
+    { label: "Todo Tasks", value: stats.todoTasks ?? 0, icon: "time", color: "#f59e0b", iconBg: "#d97706" },
+    { label: "Tasks In Progress", value: stats.inProgressTasks ?? 0, icon: "play", color: "#8b5cf6", iconBg: "#7c3aed" },
+    { label: "Tasks Completed", value: stats.completedTasks ?? 0, icon: "checkmark", color: "#10b981", iconBg: "#059669" },
+    { label: "Tasks On Hold", value: stats.onHoldTasks ?? 0, icon: "pause", color: "#ef4444", iconBg: "#dc2626" },
   ];
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerRow}>
             <View style={styles.headerLeft}>
-              <Text style={styles.headerTitle}>Dashboard</Text>
-              <Text style={styles.headerSubtitle}>Welcome back!</Text>
+              <Text style={styles.headerTitle}>DASHBOARD</Text>
+              <Text style={styles.headerSubtitle}>Welcome Back!</Text>
             </View>
-            <ReloadButton onPress={handleReload} />
+            <Pressable
+              style={({ pressed }) => [
+                styles.reloadButton,
+                pressed && { opacity: 0.7 }
+              ]}
+              onPress={handleReload}
+            >
+              <Ionicons name="refresh" size={22} color="#1f2937" />
+            </Pressable>
           </View>
+        </View>
+
+        {/* Tab Navigation */}
+        <View style={styles.tabContainer}>
+          <Pressable
+            onPress={() => setActiveTab("orders")}
+            style={[
+              styles.tab,
+              activeTab === "orders" && styles.tabActive
+            ]}
+          >
+            <Text style={[
+              styles.tabText,
+              activeTab === "orders" && styles.tabTextActive
+            ]}>
+              ORDERS
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => setActiveTab("tasks")}
+            style={[
+              styles.tab,
+              activeTab === "tasks" && styles.tabActive
+            ]}
+          >
+            <Text style={[
+              styles.tabText,
+              activeTab === "tasks" && styles.tabTextActive
+            ]}>
+              TASKS
+            </Text>
+          </Pressable>
         </View>
 
         {loading ? (
-          <View style={{ paddingVertical: 24, alignItems: "center" }}>
-            <ActivityIndicator size="large" color="#2563eb" />
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#008236" />
           </View>
         ) : (
-          <View style={styles.statsGrid}>
-            {statCards.map((stat, index) => (
-              <TouchableOpacity key={index} style={styles.statCard} onPress={() => navigation.navigate('PendingTasks', { status: stat.label })}>
-                <View style={[styles.statIcon, { backgroundColor: stat.color + "20" }]}>
-                  <Ionicons name={stat.icon} size={24} color={stat.color} />
+          <>
+            {/* Stats Section */}
+            <View style={styles.statsContainer}>
+              {activeTab === "orders" ? (
+                <View style={styles.statsGrid}>
+                  {statCards.map((stat, index) => (
+                    <View key={index} style={styles.statCard}>
+                      <View style={[styles.statIcon, { backgroundColor: stat.iconBg }]}>
+                        <Ionicons name={stat.icon} size={24} color="#fff" />
+                      </View>
+                      <Text style={styles.statValue}>{String(stat.value).padStart(2, '0')}</Text>
+                      <Text style={styles.statLabel}>{stat.label}</Text>
+                    </View>
+                  ))}
                 </View>
-                <Text style={styles.statValue}>{stat.value}</Text>
-                <Text style={styles.statLabel}>{stat.label}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+              ) : (
+                <View>
+                  <View style={[styles.statsGrid, { marginBottom: 12 }]}>
+                    {taskStatCards.slice(0, 3).map((stat, index) => (
+                      <TouchableOpacity
+                        key={index}
+                        style={styles.statCard}
+                        onPress={() => navigation.navigate('PendingTasks', { status: stat.label })}
+                      >
+                        <View style={[styles.statIcon, { backgroundColor: stat.iconBg }]}>
+                          <Ionicons name={stat.icon} size={24} color="#fff" />
+                        </View>
+                        <Text style={styles.statValue}>{String(stat.value).padStart(2, '0')}</Text>
+                        <Text style={styles.statLabel}>{stat.label}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                  <View style={styles.statsGrid}>
+                    {taskStatCards.slice(3).map((stat, index) => (
+                      <TouchableOpacity
+                        key={index + 3}
+                        style={styles.statCard}
+                        onPress={() => navigation.navigate('PendingTasks', { status: stat.label })}
+                      >
+                        <View style={[styles.statIcon, { backgroundColor: stat.iconBg }]}>
+                          <Ionicons name={stat.icon} size={24} color="#fff" />
+                        </View>
+                        <Text style={styles.statValue}>{String(stat.value).padStart(2, '0')}</Text>
+                        <Text style={styles.statLabel}>{stat.label}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              )}
+            </View>
+
+            {/* Recent Items Section */}
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Recent {activeTab === "orders" ? "Orders" : "Tasks"}</Text>
+                <TouchableOpacity onPress={() => navigation.navigate(activeTab === "orders" ? "Orders" : "Tasks")}>
+                  <Text style={styles.seeAllText}>See All</Text>
+                </TouchableOpacity>
+              </View>
+
+              {error ? (
+                <View style={styles.errorItem}>
+                  <Ionicons name="alert-circle" size={20} color="#ef4444" />
+                  <Text style={styles.errorText}>{error}</Text>
+                </View>
+              ) : (activeTab === "orders" ? orders : tasks).length === 0 ? (
+                <View style={styles.emptyItem}>
+                  <Ionicons name="inbox-outline" size={24} color="#9ca3af" />
+                  <Text style={styles.emptyText}>No {activeTab === "orders" ? "orders" : "tasks"} found</Text>
+                </View>
+              ) : (
+                (activeTab === "orders" ? orders : tasks).map((item, i) => (
+                  <TouchableOpacity
+                    key={item._id ?? i}
+                    style={styles.recentItem}
+                    onPress={() => {
+                      if (activeTab === "orders") {
+                        navigation.navigate("Orders");
+                      } else {
+                        navigation.navigate("Tasks", { screen: "TaskVerification", params: { taskId: item._id, task: item } });
+                      }
+                    }}
+                  >
+                    <View style={styles.recentItemContent}>
+                      <Text style={styles.recentItemTitle} numberOfLines={1}>{item.title || item.name || `Item #${item._id ?? i}`}</Text>
+                      {activeTab === "orders" ? (
+                        <Text style={styles.recentItemMeta} numberOfLines={1}>Order #{item.order_number || item._id?.slice(-6) || "N/A"}</Text>
+                      ) : (
+                        <Text style={styles.recentItemMeta} numberOfLines={1}>{item.description || item.location || "No description"}</Text>
+                      )}
+                    </View>
+                    <View style={[
+                      styles.statusBadge,
+                      { backgroundColor: getStatusColor(item.status).bg }
+                    ]}>
+                      <Text style={[
+                        styles.statusText,
+                        { color: getStatusColor(item.status).color }
+                      ]}>
+                        {item.status || "Unknown"}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                ))
+              )}
+            </View>
+          </>
         )}
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Recent Tasks</Text>
-
-          {error ? (
-            <View style={styles.activityItem}>
-              <View style={styles.activityDot} />
-              <View style={styles.activityContent}>
-                <Text style={styles.activityTitle}>{error}</Text>
-              </View>
-            </View>
-          ) : tasks.length === 0 ? (
-            <View style={styles.activityItem}>
-              <View style={styles.activityDot} />
-              <View style={styles.activityContent}>
-                <Text style={styles.activityTitle}>No tasks found</Text>
-              </View>
-            </View>
-          ) : (
-            tasks.slice(0, 12).map((task, i) => (
-              <TouchableOpacity key={task._id ?? i} style={styles.activityItem} onPress={() => navigation.navigate("Tasks", { screen: "TaskVerification", params: { taskId: task._id, task: task } })}>
-                <View style={[
-                  styles.activityDot,
-                  {
-                    backgroundColor:
-                      (task.status || "").toLowerCase().includes("complete") ? "#10b981" :
-                        (task.status || "").toLowerCase().includes("todo") ? "#f59e0b" :
-                          (task.status || "").toLowerCase().includes("hold") ? "#ef4444" :
-                            "#8b5cf6"
-                  }
-                ]} />
-                <View style={styles.activityContent}>
-                  <Text style={styles.activityTitle}>{task.title || task.name || `Task #${task._id ?? i}`}</Text>
-                  <Text style={styles.activityTime}>{task.status || "Unknown"}</Text>
-                </View>
-              </TouchableOpacity>
-            ))
-          )}
-        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -314,15 +563,18 @@ export default function HomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f9fafb",
+    backgroundColor: "#f8f9fa",
   },
   content: {
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    gap: 24,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    gap: 28,
   },
+
+  // Header Styles
   header: {
-    marginBottom: 8,
+    marginBottom: 12,
+    marginTop: 8,
   },
   headerRow: {
     flexDirection: 'row',
@@ -333,29 +585,97 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#1f2937",
+    fontSize: 32,
+    fontWeight: "800",
+    color: "#0f172a",
+    letterSpacing: -0.5,
+    marginBottom: 4,
   },
   headerSubtitle: {
+    fontSize: 15,
+    color: "#64748b",
+    fontWeight: "400",
+  },
+  reloadButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: "#ffffff",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+
+  // Tab Navigation Styles
+  tabContainer: {
+    flexDirection: "row",
+    backgroundColor: "#e8eaed",
+    borderRadius: 14,
+    padding: 5,
+    gap: 6,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  tabActive: {
+    backgroundColor: "#00A73E",
+    shadowColor: "#00A73E",
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  tabText: {
     fontSize: 14,
-    color: "#6b7280",
-    marginTop: 4,
+    fontWeight: "700",
+    color: "#71717a",
+    letterSpacing: 0.2,
+  },
+  tabTextActive: {
+    color: "#ffffff",
+  },
+
+  // Loading & Empty States
+  loadingContainer: {
+    paddingVertical: 48,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  // Stats Container Styles
+  statsContainer: {
+    backgroundColor: "#00A73E",
+    borderRadius: 28,
+    paddingHorizontal: 18,
+    paddingVertical: 26,
+    shadowColor: "#00A73E",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 6,
   },
   statsGrid: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12,
+    justifyContent: "space-between",
+    gap: 10,
   },
   statCard: {
     flex: 1,
-    minWidth: "48%",
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: "rgba(255, 255, 255, 0.12)",
+    borderRadius: 16,
+    paddingVertical: 20,
+    paddingHorizontal: 14,
     alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
+    justifyContent: "center",
   },
   statIcon: {
     width: 48,
@@ -363,55 +683,129 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 3,
   },
   statValue: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#1f2937",
+    fontSize: 24,
+    fontWeight: "800",
+    color: "#ffffff",
+    marginBottom: 6,
+    letterSpacing: -0.3,
   },
   statLabel: {
-    fontSize: 12,
-    color: "#6b7280",
-    marginTop: 4,
+    fontSize: 11.5,
+    color: "rgba(255, 255, 255, 0.9)",
+    fontWeight: "500",
+    textAlign: "center",
+    lineHeight: 16,
   },
+
+  // Section Styles
   section: {
-    gap: 12,
+    gap: 14,
+    marginBottom: 8,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 2,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#0f172a",
+  },
+  seeAllText: {
+    fontSize: 14,
     fontWeight: "600",
-    color: "#1f2937",
+    color: "#008236",
   },
-  activityItem: {
+
+  // Error & Empty States
+  errorItem: {
     flexDirection: "row",
-    alignItems: "flex-start",
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
+    alignItems: "center",
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    backgroundColor: "#fee2e2",
+    borderRadius: 14,
     gap: 12,
+    borderWidth: 1,
+    borderColor: "#fecaca",
   },
-  activityDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#2563eb",
-    marginTop: 6,
+  errorText: {
+    fontSize: 14,
+    color: "#b91c1c",
+    fontWeight: "600",
   },
-  activityContent: {
+  emptyItem: {
+    flexDirection: "column",
+    alignItems: "center",
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+    backgroundColor: "#f9fafb",
+    borderRadius: 16,
+    gap: 10,
+  },
+  emptyText: {
+    fontSize: 15,
+    color: "#6b7280",
+    fontWeight: "500",
+  },
+
+  // Recent Items Styles
+  recentItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    backgroundColor: "#ffffff",
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 2,
+    marginBottom: 2,
+  },
+  recentItemContent: {
     flex: 1,
   },
-  activityTitle: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#1f2937",
+  recentItemTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#0f172a",
+    marginBottom: 4,
   },
-  activityTime: {
+  recentItemStatus: {
     fontSize: 12,
-    color: "#9ca3af",
-    marginTop: 2,
+    color: "#64748b",
+    fontWeight: "600",
+    marginTop: 4,
+  },
+  recentItemMeta: {
+    fontSize: 13,
+    color: "#78909c",
+    fontWeight: "400",
+  },
+  statusBadge: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: "600",
   },
 });
