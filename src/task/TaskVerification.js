@@ -122,9 +122,9 @@ export default function TaskVerification({ navigation, route }) {
         <View style={styles.checkmarkContainer}>
           <View style={styles.checkmarkCircle}>
             {isVerifying ? (
-              <ActivityIndicator size="large" color="#2563eb" />
+              <ActivityIndicator size="large" color="#00A73E" />
             ) : locationVerified ? (
-              <Ionicons name="checkmark" size={48} color="#2563eb" />
+              <Ionicons name="checkmark" size={48} color="#00A73E" />
             ) : (
               <Ionicons name="reload" size={48} color="#6b7280" />
             )}
@@ -169,7 +169,7 @@ export default function TaskVerification({ navigation, route }) {
             onPress={verifyLocation}
           >
             <View style={styles.reloadCircleMiddle}>
-              <Ionicons name="reload" size={24} color="#2563eb" />
+              <Ionicons name="reload" size={24} color="#00A73E" />
             </View>
             <Text style={styles.reloadButtonText}>Retry Location Verification</Text>
           </TouchableOpacity>
@@ -220,11 +220,11 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: "#eff6ff",
+    backgroundColor: "#dcfce7",
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 2,
-    borderColor: "#2563eb",
+    borderColor: "#00A73E",
   },
   verificationText: {
     fontSize: 18,
@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
     color: "#6b7280",
   },
   startButton: {
-    backgroundColor: "#2563eb",
+    backgroundColor: "#00A73E",
     paddingVertical: 12,
     paddingHorizontal: 32,
     borderRadius: 24,
@@ -291,17 +291,17 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: "#eff6ff",
+    backgroundColor: "#dcfce7",
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 2,
-    borderColor: "#2563eb",
+    borderColor: "#00A73E",
     marginBottom: 8,
   },
   reloadButtonText: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#2563eb",
+    color: "#00A73E",
     textAlign: "center",
   },
 })

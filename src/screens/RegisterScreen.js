@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   loginLink: {
-    color: "#00A73E"
+    color: "#00A73E",
     fontSize: 14,
     textAlign: "center",
     marginTop: 16,

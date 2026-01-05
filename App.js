@@ -58,10 +58,7 @@ function HomeStackScreen() {
       <HomeStack.Screen name="DueTodayTasks" component={DueTodayTasks} />
       <HomeStack.Screen name="PastDueTasks" component={PastDueTasks} />
 
-      {/* <HomeStack.Screen
-        name="WorkOrderDetail"
-        component={WorkOrderDetail}
-      /> */}
+      <HomeStack.Screen name="WorkOrder" component={WorkOrderDetail} />
       <HomeStack.Screen name="TaskDetail" component={TaskDetail} />
     </HomeStack.Navigator>
   );
@@ -102,7 +99,7 @@ function MainTabs({ setIsLoggedIn }) {
             case "Tasks":
               iconName = "list-outline";
               break;
-            
+
             case "Profile":
               iconName = "person-outline";
               break;

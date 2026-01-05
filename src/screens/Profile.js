@@ -602,7 +602,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  submitButtonDisabled: { backgroundColor: "#d4edda", opacity: 0.7 }
+  submitButtonDisabled: { backgroundColor: "#d4edda", opacity: 0.7 },
   submitButtonText: {
     fontSize: 14,
     fontWeight: "600",

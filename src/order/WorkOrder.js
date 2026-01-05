@@ -12,6 +12,21 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
+// Helper function to get status badge colors
+const getStatusColor = (status) => {
+  const statusLower = (status || "").toLowerCase();
+  if (statusLower.includes("pending")) {
+    return { bg: "#fef3c7", color: "#d97706" };
+  } else if (statusLower.includes("progress") || statusLower.includes("in progress")) {
+    return { bg: "#dcfce7", color: "#00A73E" };
+  } else if (statusLower.includes("complete") || statusLower.includes("completed")) {
+    return { bg: "#dcfce7", color: "#00A73E" };
+  } else if (statusLower.includes("hold") || statusLower.includes("on-hold")) {
+    return { bg: "#fee2e2", color: "#dc2626" };
+  }
+  return { bg: "#f3f4f6", color: "#6b7280" };
+};
+
 export default function WorkOrderDetail({ route, navigation }) {
   const workOrder = route?.params?.workOrder || {
     id: "15",
@@ -20,12 +35,22 @@ export default function WorkOrderDetail({ route, navigation }) {
   };
 
   const [isSigned, setIsSigned] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState("All");
   const signaturePadRef = useRef(null);
 
   const assets = [
     { id: 1, name: "Switch", status: "Pending" },
     { id: 2, name: "Panel", status: "Pending" },
+    { id: 3, name: "Router", status: "In Progress" },
+    { id: 4, name: "Cable", status: "Completed" },
+    { id: 5, name: "Outlet", status: "On Hold" },
   ];
+
+  const statusOptions = ["All", "Pending", "In Progress", "Completed", "On Hold"];
+
+  const filteredAssets = selectedFilter === "All"
+    ? assets
+    : assets.filter(asset => asset.status === selectedFilter);
 
   const handleClearSignature = () => {
     setIsSigned(false);
@@ -37,25 +62,25 @@ export default function WorkOrderDetail({ route, navigation }) {
 
   const handleCompleteWorkorder = () => {
     alert("Workorder completed!");
-    navigation.navigate("Home", {screen: "HomeMain"})
+    navigation.navigate("Home", { screen: "HomeMain" })
   };
 
   const renderAssetItem = ({ item }) => (
     <TouchableOpacity
       style={styles.assetCard}
-      // onPress={() =>
-      //   navigation.navigate("Tasks", { screen: "TaskDetail" }, { item })
-      // }
+    // onPress={() =>
+    //   navigation.navigate("Tasks", { screen: "TaskDetail" }, { item })
+    // }
     >
       <View style={styles.assetLeft}>
         <Text style={styles.assetNumber}>{item.id} #</Text>
         <Text style={styles.assetName}>{item.name}</Text>
       </View>
       <View style={styles.assetRight}>
-        <View style={styles.assetStatus}>
-          <Text style={styles.statusBadgeText}>{item.status}</Text>
+        <View style={[styles.assetStatus, { backgroundColor: getStatusColor(item.status).bg }]}>
+          <Text style={[styles.statusBadgeText, { color: getStatusColor(item.status).color }]}>{item.status}</Text>
         </View>
-        <Ionicons name="chevron-forward" size={20} color="#2563eb" />
+        <Ionicons name="chevron-forward" size={20} color="#00A73E" />
       </View>
     </TouchableOpacity>
   );
@@ -86,14 +111,53 @@ export default function WorkOrderDetail({ route, navigation }) {
           </View>
         </View>
 
+        {/* Filter Section */}
+        <View style={styles.filterSection}>
+          <Text style={styles.filterTitle}>Filter by Status</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.filterScroll}
+          >
+            {statusOptions.map((status) => (
+              <TouchableOpacity
+                key={status}
+                style={[
+                  styles.filterButton,
+                  selectedFilter === status && styles.filterButtonActive
+                ]}
+                onPress={() => setSelectedFilter(status)}
+              >
+                <Text
+                  style={[
+                    styles.filterButtonText,
+                    selectedFilter === status && styles.filterButtonTextActive
+                  ]}
+                >
+                  {status}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
         {/* Assets List */}
         <View style={styles.assetsSection}>
-          <FlatList
-            data={assets}
-            renderItem={renderAssetItem}
-            keyExtractor={(item) => item.id.toString()}
-            scrollEnabled={false}
-          />
+          {filteredAssets.length > 0 ? (
+            <FlatList
+              data={filteredAssets}
+              renderItem={renderAssetItem}
+              keyExtractor={(item) => item.id.toString()}
+              scrollEnabled={false}
+            />
+          ) : (
+            <View style={styles.emptyState}>
+              <Ionicons name="inbox-outline" size={48} color="#d1d5db" />
+              <Text style={styles.emptyStateText}>
+                No assets found for {selectedFilter} status
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Signature Section */}
@@ -228,15 +292,15 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   assetStatus: {
-    backgroundColor: "#eff6ff",
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 4,
+    borderRadius: 8,
+    justifyContent: "center",
+    alignItems: "center",
   },
   statusBadgeText: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#2563eb",
   },
   signatureSection: {
     paddingHorizontal: 16,
@@ -272,6 +336,55 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 12,
   },
+  filterSection: {
+    paddingHorizontal: 16,
+    marginVertical: 16,
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    paddingVertical: 12,
+  },
+  filterTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#1f2937",
+    marginBottom: 12,
+  },
+  filterScroll: {
+    flexDirection: "row",
+  },
+  filterButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: "#e5e7eb",
+    marginRight: 10,
+    backgroundColor: "#f9fafb",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  filterButtonActive: {
+    backgroundColor: "#00A73E",
+    borderColor: "#00A73E",
+  },
+  filterButtonText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#6b7280",
+  },
+  filterButtonTextActive: {
+    color: "#fff",
+  },
+  emptyState: {
+    alignItems: "center",
+    paddingVertical: 40,
+    gap: 12,
+  },
+  emptyStateText: {
+    fontSize: 14,
+    color: "#6b7280",
+    fontWeight: "500",
+  },
   clearButton: {
     flex: 1,
     paddingVertical: 12,
@@ -303,7 +416,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginBottom: 24,
     paddingVertical: 14,
-    backgroundColor: "#2563eb",
+    backgroundColor: "#00A73E",
     borderRadius: 8,
     alignItems: "center",
   },

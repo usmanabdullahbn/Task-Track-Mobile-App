@@ -372,17 +372,17 @@ export default function HomeScreen({ navigation }) {
   };
 
   const statCards = [
-    { label: "Total Order", value: stats.totalOrders ?? 0, icon: "cart", color: "#06b6d4", iconBg: "#00A73E" },
-    { label: "Pending Order", value: stats.pendingOrders ?? 0, icon: "time", color: "#f59e0b", iconBg: "#d97706" },
-    { label: "In Progress", value: stats.inProgressOrders ?? 0, icon: "play", color: "#8b5cf6", iconBg: "#7c3aed" },
+    { label: "Total Order", value: stats.totalOrders ?? 0, icon: "cart", bg: "#6366f1", iconBg: "#4f46e5" },
+    { label: "Pending Order", value: stats.pendingOrders ?? 0, icon: "time", bg: "#14b8a6", iconBg: "#0d9488" },
+    { label: "In Progress", value: stats.inProgressOrders ?? 0, icon: "play", bg: "#f97316", iconBg: "#ea580c" },
   ];
 
   const taskStatCards = [
-    { label: "Total Tasks", value: stats.totalTasks ?? 0, icon: "cart", color: "#3b82f6", iconBg: "#00A73E" },
-    { label: "Todo Tasks", value: stats.todoTasks ?? 0, icon: "time", color: "#f59e0b", iconBg: "#d97706" },
-    { label: "Tasks In Progress", value: stats.inProgressTasks ?? 0, icon: "play", color: "#8b5cf6", iconBg: "#7c3aed" },
-    { label: "Tasks Completed", value: stats.completedTasks ?? 0, icon: "checkmark", color: "#10b981", iconBg: "#059669" },
-    { label: "Tasks On Hold", value: stats.onHoldTasks ?? 0, icon: "pause", color: "#ef4444", iconBg: "#dc2626" },
+    { label: "Total Tasks", value: stats.totalTasks ?? 0, icon: "cart", bg: "#6366f1", iconBg: "#4f46e5" },
+    { label: "Todo Tasks", value: stats.todoTasks ?? 0, icon: "time", bg: "#14b8a6", iconBg: "#0d9488" },
+    { label: "Tasks In Progress", value: stats.inProgressTasks ?? 0, icon: "play", bg: "#f97316", iconBg: "#ea580c" },
+    { label: "Tasks Completed", value: stats.completedTasks ?? 0, icon: "checkmark", bg: "#10b981", iconBg: "#059669" },
+    { label: "Tasks On Hold", value: stats.onHoldTasks ?? 0, icon: "pause", bg: "#ef4444", iconBg: "#dc2626" },
   ];
 
   return (
@@ -451,16 +451,24 @@ export default function HomeScreen({ navigation }) {
             {/* Stats Section */}
             <View style={styles.statsContainer}>
               {activeTab === "orders" ? (
-                <View style={styles.statsGrid}>
-                  {statCards.map((stat, index) => (
-                    <View key={index} style={styles.statCard}>
-                      <View style={[styles.statIcon, { backgroundColor: stat.iconBg }]}>
-                        <Ionicons name={stat.icon} size={24} color="#fff" />
-                      </View>
-                      <Text style={styles.statValue}>{String(stat.value).padStart(2, '0')}</Text>
-                      <Text style={styles.statLabel}>{stat.label}</Text>
-                    </View>
-                  ))}
+                <View style={[styles.statsGrid]}>
+                  {statCards.map((stat, index) => {
+                    let filterStatus = null;
+                    if (stat.label.includes("Pending")) {
+                      filterStatus = "pending";
+                    } else if (stat.label.includes("In Progress")) {
+                      filterStatus = "in progress";
+                    }
+                    return (
+                      <TouchableOpacity key={index} style={[styles.statCard, { backgroundColor: stat.bg }]} onPress={() => navigation.navigate('PendingTasks', filterStatus ? { status: filterStatus } : {})}>
+                        <View style={[styles.statIcon, { backgroundColor: stat.iconBg }]}>
+                          <Ionicons name={stat.icon} size={28} color="#fff" />
+                        </View>
+                        <Text style={styles.statValue}>{stat.value}</Text>
+                        <Text style={styles.statLabel}>{stat.label}</Text>
+                      </TouchableOpacity>
+                    );
+                  })}
                 </View>
               ) : (
                 <View>
@@ -468,13 +476,13 @@ export default function HomeScreen({ navigation }) {
                     {taskStatCards.slice(0, 3).map((stat, index) => (
                       <TouchableOpacity
                         key={index}
-                        style={styles.statCard}
+                        style={[styles.statCard, { backgroundColor: stat.bg }]}
                         onPress={() => navigation.navigate('PendingTasks', { status: stat.label })}
                       >
                         <View style={[styles.statIcon, { backgroundColor: stat.iconBg }]}>
-                          <Ionicons name={stat.icon} size={24} color="#fff" />
+                          <Ionicons name={stat.icon} size={28} color="#fff" />
                         </View>
-                        <Text style={styles.statValue}>{String(stat.value).padStart(2, '0')}</Text>
+                        <Text style={styles.statValue}>{stat.value}</Text>
                         <Text style={styles.statLabel}>{stat.label}</Text>
                       </TouchableOpacity>
                     ))}
@@ -483,13 +491,13 @@ export default function HomeScreen({ navigation }) {
                     {taskStatCards.slice(3).map((stat, index) => (
                       <TouchableOpacity
                         key={index + 3}
-                        style={styles.statCard}
+                        style={[styles.statCard, { backgroundColor: stat.bg }]}
                         onPress={() => navigation.navigate('PendingTasks', { status: stat.label })}
                       >
                         <View style={[styles.statIcon, { backgroundColor: stat.iconBg }]}>
-                          <Ionicons name={stat.icon} size={24} color="#fff" />
+                          <Ionicons name={stat.icon} size={28} color="#fff" />
                         </View>
-                        <Text style={styles.statValue}>{String(stat.value).padStart(2, '0')}</Text>
+                        <Text style={styles.statValue}>{stat.value}</Text>
                         <Text style={styles.statLabel}>{stat.label}</Text>
                       </TouchableOpacity>
                     ))}
@@ -502,7 +510,7 @@ export default function HomeScreen({ navigation }) {
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>Recent {activeTab === "orders" ? "Orders" : "Tasks"}</Text>
-                <TouchableOpacity onPress={() => navigation.navigate(activeTab === "orders" ? "Orders" : "Tasks")}>
+                <TouchableOpacity onPress={() => navigation.navigate(activeTab === "orders" ? "PendingTasks" : "Tasks")}>
                   <Text style={styles.seeAllText}>See All</Text>
                 </TouchableOpacity>
               </View>
@@ -524,7 +532,7 @@ export default function HomeScreen({ navigation }) {
                     style={styles.recentItem}
                     onPress={() => {
                       if (activeTab === "orders") {
-                        navigation.navigate("Orders");
+                        navigation.navigate("TaskDetail", { orderId: item._id || item.id });
                       } else {
                         navigation.navigate("Tasks", { screen: "TaskVerification", params: { taskId: item._id, task: item } });
                       }
@@ -653,56 +661,55 @@ const styles = StyleSheet.create({
 
   // Stats Container Styles
   statsContainer: {
-    backgroundColor: "#00A73E",
-    borderRadius: 28,
-    paddingHorizontal: 18,
-    paddingVertical: 26,
-    shadowColor: "#00A73E",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    elevation: 6,
+    paddingHorizontal: 0,
+    paddingVertical: 8,
+    gap: 12,
   },
   statsGrid: {
     flexDirection: "row",
     justifyContent: "space-between",
-    gap: 10,
+    gap: 12,
   },
   statCard: {
     flex: 1,
-    backgroundColor: "rgba(255, 255, 255, 0.12)",
-    borderRadius: 16,
-    paddingVertical: 20,
-    paddingHorizontal: 14,
+    borderRadius: 24,
+    paddingVertical: 24,
+    paddingHorizontal: 16,
     alignItems: "center",
     justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 4,
+    minHeight: 160,
   },
   statIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
+    width: 56,
+    height: 56,
+    borderRadius: 16,
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: 14,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   statValue: {
-    fontSize: 24,
-    fontWeight: "800",
+    fontSize: 32,
+    fontWeight: "900",
     color: "#ffffff",
-    marginBottom: 6,
-    letterSpacing: -0.3,
+    marginBottom: 8,
+    letterSpacing: -0.5,
   },
   statLabel: {
-    fontSize: 11.5,
-    color: "rgba(255, 255, 255, 0.9)",
-    fontWeight: "500",
+    fontSize: 13,
+    color: "rgba(255, 255, 255, 0.95)",
+    fontWeight: "600",
     textAlign: "center",
-    lineHeight: 16,
+    lineHeight: 18,
   },
 
   // Section Styles

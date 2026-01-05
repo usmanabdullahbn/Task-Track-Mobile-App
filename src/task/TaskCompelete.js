@@ -10,7 +10,7 @@ import { apiClient } from "../lib/api-client";
 
 export default function TaskCompelete({ navigation, route }) {
   const taskId = route?.params?.taskId;
-    console.log("Task ID on Start  page",taskId)
+  console.log("Task ID on Start  page", taskId)
 
 
   const [task, setTask] = useState(null);
@@ -156,7 +156,7 @@ export default function TaskCompelete({ navigation, route }) {
                 style={styles.changePhotoButton}
                 onPress={() => setShowPhotoOptions(true)}
               >
-                <Ionicons name="refresh" size={16} color="#2563eb" />
+                <Ionicons name="refresh" size={16} color="#00A73E" />
                 <Text style={styles.changePhotoButtonText}>Change Photo</Text>
               </TouchableOpacity>
             </View>
@@ -193,7 +193,7 @@ export default function TaskCompelete({ navigation, route }) {
                   onPress={takePhotoWithCamera}
                 >
                   <View style={styles.photoOptionIcon}>
-                    <Ionicons name="camera" size={24} color="#2563eb" />
+                    <Ionicons name="camera" size={24} color="#00A73E" />
                   </View>
                   <View style={styles.photoOptionText}>
                     <Text style={styles.photoOptionTitle}>Take Photo</Text>
@@ -209,7 +209,7 @@ export default function TaskCompelete({ navigation, route }) {
                   onPress={pickImageFromGallery}
                 >
                   <View style={styles.photoOptionIcon}>
-                    <Ionicons name="image" size={24} color="#2563eb" />
+                    <Ionicons name="image" size={24} color="#00A73E" />
                   </View>
                   <View style={styles.photoOptionText}>
                     <Text style={styles.photoOptionTitle}>Choose from Gallery</Text>
@@ -340,7 +340,7 @@ const styles = StyleSheet.create({
   changePhotoButtonText: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#2563eb",
+    color: "#00A73E",
   },
   modalOverlay: {
     flex: 1,
@@ -450,7 +450,7 @@ const styles = StyleSheet.create({
   finishButton: {
     marginHorizontal: 16,
     marginBottom: 20,
-    backgroundColor: "#2563eb",
+    backgroundColor: "#00A73E",
     paddingVertical: 14,
     borderRadius: 8,
     alignItems: "center",

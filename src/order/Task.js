@@ -20,6 +20,21 @@ import { captureRef } from 'react-native-view-shot';
 import { apiClient } from "../lib/api-client";
 import BackButton from "../components/BackButton";
 
+// Helper function to get status badge colors
+const getStatusColor = (status) => {
+  const statusLower = (status || "").toLowerCase();
+  if (statusLower.includes("pending")) {
+    return { bg: "#fef3c7", color: "#d97706" };
+  } else if (statusLower.includes("progress") || statusLower.includes("in progress")) {
+    return { bg: "#dcfce7", color: "#00A73E" };
+  } else if (statusLower.includes("complete") || statusLower.includes("completed")) {
+    return { bg: "#dcfce7", color: "#00A73E" };
+  } else if (statusLower.includes("hold") || statusLower.includes("on-hold")) {
+    return { bg: "#fee2e2", color: "#dc2626" };
+  }
+  return { bg: "#f3f4f6", color: "#6b7280" };
+};
+
 const { width: screenWidth } = Dimensions.get("window");
 
 export default function TaskDetail({ route, navigation }) {
@@ -248,10 +263,10 @@ export default function TaskDetail({ route, navigation }) {
         </Text>
       </View>
       <View style={styles.taskRight}>
-        <View style={styles.taskStatus}>
-          <Text style={styles.statusBadgeText}>{item.status}</Text>
+        <View style={[styles.taskStatus, { backgroundColor: getStatusColor(item.status).bg }]}>
+          <Text style={[styles.statusBadgeText, { color: getStatusColor(item.status).color }]}>{item.status}</Text>
         </View>
-        <Ionicons name="chevron-forward" size={20} color="#2563eb" />
+        <Ionicons name="chevron-forward" size={20} color="#00A73E" />
       </View>
     </TouchableOpacity>
   );
@@ -260,7 +275,7 @@ export default function TaskDetail({ route, navigation }) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#2563eb" />
+          <ActivityIndicator size="large" color="#00A73E" />
           <Text style={styles.loadingText}>Loading tasks...</Text>
         </View>
       </SafeAreaView>
@@ -335,7 +350,7 @@ export default function TaskDetail({ route, navigation }) {
                   try {
                     const parsedPaths = JSON.parse(signatureImage);
                     return (
-                      <View 
+                      <View
                         ref={signatureDisplayRef}
                         style={styles.signatureDisplayCanvas}
                       >
@@ -407,7 +422,7 @@ export default function TaskDetail({ route, navigation }) {
             </View>
 
             <View style={styles.instructionBox}>
-              <Ionicons name="information-circle" size={16} color="#2563eb" />
+              <Ionicons name="information-circle" size={16} color="#00A73E" />
               <Text style={styles.instructionText}>
                 Sign in the box below to confirm
               </Text>
@@ -453,7 +468,7 @@ export default function TaskDetail({ route, navigation }) {
                 }
               }}
             >
-              <View 
+              <View
                 ref={signatureCanvasRef}
                 collapsable={false}
                 style={styles.canvas}
@@ -546,10 +561,16 @@ export default function TaskDetail({ route, navigation }) {
 
         {/* Complete Order Button */}
         <TouchableOpacity
-          style={styles.completeButton}
+          style={[
+            styles.completeButton,
+            (workOrder?.status || "").toLowerCase().includes("complete") && styles.disabledButton
+          ]}
           onPress={handleCompleteOrder}
+          disabled={(workOrder?.status || "").toLowerCase().includes("complete")}
         >
-          <Text style={styles.completeButtonText}>Complete Order</Text>
+          <Text style={styles.completeButtonText}>
+            {(workOrder?.status || "").toLowerCase().includes("complete") ? "Order Completed" : "Complete Order"}
+          </Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -675,15 +696,15 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   taskStatus: {
-    backgroundColor: "#eff6ff",
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 4,
+    borderRadius: 8,
+    justifyContent: "center",
+    alignItems: "center",
   },
   statusBadgeText: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#2563eb",
   },
   signatureSection: {
     paddingHorizontal: 16,
@@ -774,7 +795,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     backgroundColor: "#eff6ff",
     borderLeftWidth: 4,
-    borderLeftColor: "#2563eb",
+    borderLeftColor: "#00A73E",
     borderRadius: 6,
     gap: 8,
   },
@@ -828,7 +849,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    backgroundColor: "#2563eb",
+    backgroundColor: "#00A73E",
     borderRadius: 8,
     alignItems: "center",
   },
@@ -841,9 +862,13 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginBottom: 24,
     paddingVertical: 14,
-    backgroundColor: "#2563eb",
+    backgroundColor: "#00A73E",
     borderRadius: 8,
     alignItems: "center",
+  },
+  disabledButton: {
+    backgroundColor: "#d1d5db",
+    opacity: 0.6,
   },
   completeButtonText: {
     fontSize: 15,

@@ -13,6 +13,21 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import BackButton from "../components/BackButton";
 
+// Helper function to get status badge colors
+const getStatusColor = (status) => {
+  const statusLower = (status || "").toLowerCase();
+  if (statusLower.includes("pending")) {
+    return { bg: "#fef3c7", color: "#d97706" };
+  } else if (statusLower.includes("progress") || statusLower.includes("in progress")) {
+    return { bg: "#dcfce7", color: "#00A73E" };
+  } else if (statusLower.includes("complete") || statusLower.includes("completed")) {
+    return { bg: "#dcfce7", color: "#00A73E" };
+  } else if (statusLower.includes("hold") || statusLower.includes("on-hold")) {
+    return { bg: "#fee2e2", color: "#dc2626" };
+  }
+  return { bg: "#f3f4f6", color: "#6b7280" };
+};
+
 const mockWorkOrders = [
   {
     id: "17",
@@ -52,8 +67,8 @@ export default function InProgressTasks({ navigation }) {
     >
       <View style={styles.cardHeader}>
         <Text style={styles.workOrderNumber}>#{item.id}</Text>
-        <View style={styles.statusBadge}>
-          <Text style={styles.statusText}>{item.status}</Text>
+        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status).bg }]}>
+          <Text style={[styles.statusText, { color: getStatusColor(item.status).color }]}>{item.status}</Text>
         </View>
       </View>
       <Text style={styles.workOrderType}>{item.type}</Text>
@@ -159,20 +174,20 @@ const styles = StyleSheet.create({
     color: "#1f2937",
   },
   statusBadge: {
-    backgroundColor: "#fef3c7",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    justifyContent: "center",
+    alignItems: "center",
   },
   statusText: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#92400e",
   },
   workOrderType: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#2563eb",
+    color: "#00A73E",
     marginBottom: 8,
   },
   addressContainer: {
