@@ -13,6 +13,7 @@ import LoginScreen from "./src/screens/Login";
 import Profile from "./src/screens/Profile";
 import RegisterScreen from "./src/screens/RegisterScreen";
 // import Tasks from "./src/screens/Tasks";
+import AllTasks from "./src/screens/AllTasks";
 import DueTodayTasks from "./src/tasks/DueToday";
 import InProgressTasks from "./src/tasks/InProgress";
 import OnHoldTasks from "./src/tasks/OnHold";
@@ -48,6 +49,7 @@ function HomeStackScreen() {
     <HomeStack.Navigator screenOptions={{ headerShown: false }}>
       <HomeStack.Screen name="HomeMain" component={HomeScreen} />
 
+      <HomeStack.Screen name="AllTasks" component={AllTasks} />
       <HomeStack.Screen name="PendingTasks" component={PendingTasks} />
       <HomeStack.Screen
         name="InProgressTasks"

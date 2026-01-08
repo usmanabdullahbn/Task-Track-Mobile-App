@@ -477,7 +477,7 @@ export default function HomeScreen({ navigation }) {
                       <TouchableOpacity
                         key={index}
                         style={[styles.statCard, { backgroundColor: stat.bg }]}
-                        onPress={() => navigation.navigate('PendingTasks', { status: stat.label })}
+                        onPress={() => navigation.navigate('AllTasks', { status: stat.label })}
                       >
                         <View style={[styles.statIcon, { backgroundColor: stat.iconBg }]}>
                           <Ionicons name={stat.icon} size={28} color="#fff" />
@@ -492,7 +492,7 @@ export default function HomeScreen({ navigation }) {
                       <TouchableOpacity
                         key={index + 3}
                         style={[styles.statCard, { backgroundColor: stat.bg }]}
-                        onPress={() => navigation.navigate('PendingTasks', { status: stat.label })}
+                        onPress={() => navigation.navigate('AllTasks', { status: stat.label })}
                       >
                         <View style={[styles.statIcon, { backgroundColor: stat.iconBg }]}>
                           <Ionicons name={stat.icon} size={28} color="#fff" />
@@ -510,7 +510,7 @@ export default function HomeScreen({ navigation }) {
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>Recent {activeTab === "orders" ? "Orders" : "Tasks"}</Text>
-                <TouchableOpacity onPress={() => navigation.navigate(activeTab === "orders" ? "PendingTasks" : "Tasks")}>
+                <TouchableOpacity onPress={() => navigation.navigate(activeTab === "orders" ? "PendingTasks" : "AllTasks")}>
                   <Text style={styles.seeAllText}>See All</Text>
                 </TouchableOpacity>
               </View>

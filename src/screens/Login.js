@@ -13,6 +13,7 @@ import {
   Animated,
   // SafeAreaView as SafeArea,
   ActivityIndicator,
+  Image,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -100,9 +101,11 @@ export default function LoginScreen({ setIsLoggedIn, navigation }) {
     >
       <View style={styles.content}>
         <View style={styles.logoContainer}>
-          <View style={styles.logoBadge}>
-            <Ionicons name="clipboard-outline" size={36} color="#fff" />
-          </View>
+          <Image
+            source={require("../asserts/SGI_Logo_biling.png")}
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
           <Text style={styles.appName}>TaskTrack</Text>
           <Text style={styles.tagline}>
             Your reliable companion for field operations
@@ -240,18 +243,25 @@ const styles = StyleSheet.create({
     marginBottom: 48,
   },
   logoBadge: {
-    width: 70,
-    height: 70,
-    borderRadius: 16,
+    width: 60,
+    height: 60,
+    borderRadius: 20,
     backgroundColor: "#00A73E",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 20,
     shadowColor: "#00A73E",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    elevation: 8,
+    borderWidth: 2,
+    borderColor: "rgba(0, 167, 62, 0.2)",
+  },
+  logoImage: {
+    width: 250,
+    height: 195,
+    marginBottom: 12,
   },
   appName: {
     fontSize: 32,
