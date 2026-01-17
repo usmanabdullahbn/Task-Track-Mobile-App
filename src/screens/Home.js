@@ -473,34 +473,52 @@ export default function HomeScreen({ navigation }) {
               ) : (
                 <View>
                   <View style={[styles.statsGrid, { marginBottom: 12 }]}>
-                    {taskStatCards.slice(0, 3).map((stat, index) => (
-                      <TouchableOpacity
-                        key={index}
-                        style={[styles.statCard, { backgroundColor: stat.bg }]}
-                        onPress={() => navigation.navigate('AllTasks', { status: stat.label })}
-                      >
-                        <View style={[styles.statIcon, { backgroundColor: stat.iconBg }]}>
-                          <Ionicons name={stat.icon} size={28} color="#fff" />
-                        </View>
-                        <Text style={styles.statValue}>{stat.value}</Text>
-                        <Text style={styles.statLabel}>{stat.label}</Text>
-                      </TouchableOpacity>
-                    ))}
+                    {taskStatCards.slice(0, 3).map((stat, index) => {
+                      let filterStatus = null;
+                      if (stat.label.includes("Total")) {
+                        filterStatus = "All";
+                      } else if (stat.label.includes("Todo")) {
+                        filterStatus = "Todo";
+                      } else if (stat.label.includes("In Progress")) {
+                        filterStatus = "In Progress";
+                      }
+                      return (
+                        <TouchableOpacity
+                          key={index}
+                          style={[styles.statCard, { backgroundColor: stat.bg }]}
+                          onPress={() => navigation.navigate('AllTasks', { status: filterStatus })}
+                        >
+                          <View style={[styles.statIcon, { backgroundColor: stat.iconBg }]}>
+                            <Ionicons name={stat.icon} size={28} color="#fff" />
+                          </View>
+                          <Text style={styles.statValue}>{stat.value}</Text>
+                          <Text style={styles.statLabel}>{stat.label}</Text>
+                        </TouchableOpacity>
+                      );
+                    })}
                   </View>
                   <View style={styles.statsGrid}>
-                    {taskStatCards.slice(3).map((stat, index) => (
-                      <TouchableOpacity
-                        key={index + 3}
-                        style={[styles.statCard, { backgroundColor: stat.bg }]}
-                        onPress={() => navigation.navigate('AllTasks', { status: stat.label })}
-                      >
-                        <View style={[styles.statIcon, { backgroundColor: stat.iconBg }]}>
-                          <Ionicons name={stat.icon} size={28} color="#fff" />
-                        </View>
-                        <Text style={styles.statValue}>{stat.value}</Text>
-                        <Text style={styles.statLabel}>{stat.label}</Text>
-                      </TouchableOpacity>
-                    ))}
+                    {taskStatCards.slice(3).map((stat, index) => {
+                      let filterStatus = null;
+                      if (stat.label.includes("Completed")) {
+                        filterStatus = "Completed";
+                      } else if (stat.label.includes("On Hold")) {
+                        filterStatus = "On Hold";
+                      }
+                      return (
+                        <TouchableOpacity
+                          key={index + 3}
+                          style={[styles.statCard, { backgroundColor: stat.bg }]}
+                          onPress={() => navigation.navigate('AllTasks', { status: filterStatus })}
+                        >
+                          <View style={[styles.statIcon, { backgroundColor: stat.iconBg }]}>
+                            <Ionicons name={stat.icon} size={28} color="#fff" />
+                          </View>
+                          <Text style={styles.statValue}>{stat.value}</Text>
+                          <Text style={styles.statLabel}>{stat.label}</Text>
+                        </TouchableOpacity>
+                      );
+                    })}
                   </View>
                 </View>
               )}
