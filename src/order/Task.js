@@ -99,10 +99,10 @@ export default function TaskDetail({ route, navigation }) {
         const orderTasks = allTasks.filter(
           (task) => task.order?.id === orderId
         );
-        console.log("Filtered tasks:", orderTasks);
+        // console.log("Filtered tasks:", orderTasks);
         setTasks(orderTasks);
       } catch (err) {
-        console.error("Error fetching order and tasks:", err);
+        // console.error("Error fetching order and tasks:", err);
         setError(err.message || "Failed to load data");
       } finally {
         setLoading(false);
@@ -112,13 +112,13 @@ export default function TaskDetail({ route, navigation }) {
     fetchOrderAndTasks();
   }, [orderId]);
 
-  console.log("WorkOrder:", workOrder);
-  console.log("Tasks for Order ID", orderId, ":", tasks);
+  // console.log("WorkOrder:", workOrder);
+  // console.log("Tasks for Order ID", orderId, ":", tasks);
 
   const handleTaskPress = (task) => {
     // console.log("task object:", task);
     navigation.navigate("Tasks", { screen: "TaskVerification", params: { taskId: task._id, task: task } });
-    console.log("Navigating to TaskVerification with taskId:", task.id);
+    // console.log("Navigating to TaskVerification with taskId:", task.id);
   };
 
   const handleOpenSignatureModal = () => {
@@ -158,13 +158,13 @@ export default function TaskDetail({ route, navigation }) {
 
     try {
       // Capture the signature canvas as JPEG image
-      console.log("Capturing signature canvas...");
+      // console.log("Capturing signature canvas...");
       const signatureImageUri = await captureRef(signatureCanvasRef.current, {
         format: 'jpg',
         quality: 0.8,
         result: 'tmpfile', // safer on Android
       });
-      console.log("Signature captured as image:", signatureImageUri);
+      // console.log("Signature captured as image:", signatureImageUri);
 
       // Store both the image URI and the JSON paths
       const signatureData = JSON.stringify(paths);
@@ -176,7 +176,7 @@ export default function TaskDetail({ route, navigation }) {
       setCurrentPath([]);
       currentPathRef.current = [];
     } catch (error) {
-      console.error("Error capturing signature:", error);
+      // console.error("Error capturing signature:", error);
       Alert.alert("Error", "Failed to capture signature");
     }
   };
@@ -190,12 +190,12 @@ export default function TaskDetail({ route, navigation }) {
   const handleCompleteOrder = async () => {
     try {
       // Check if all tasks are completed
-      console.log("Checking task completion. Tasks:", tasks);
+      // console.log("Checking task completion. Tasks:", tasks);
       const allTasksCompleted = tasks.every(task => {
-        console.log(`Task ${task.id} status:`, task.status);
+        // console.log(`Task ${task.id} status:`, task.status);
         return task.status === "Completed";
       });
-      console.log("All tasks completed:", allTasksCompleted);
+      // console.log("All tasks completed:", allTasksCompleted);
 
       if (!allTasksCompleted) {
         Alert.alert("Incomplete Tasks", "All tasks must be completed before completing the order.");
@@ -213,19 +213,19 @@ export default function TaskDetail({ route, navigation }) {
       formData.append('status', 'Completed');
 
       // Add the already captured signature image file
-      console.log("Using captured signature image:", signatureImageUri);
+      // console.log("Using captured signature image:", signatureImageUri);
       const fileName = `signature_${orderId}_${Date.now()}.jpg`;
       formData.append('files', {
         uri: signatureImageUri,
         name: fileName,
         type: 'image/jpeg'
       });
-      console.log("FormData created with signature image");
+      // console.log("FormData created with signature image");
 
       // Update order with signature file using regular updateOrder
-      console.log("Calling updateOrder...");
+      // console.log("Calling updateOrder...");
       await apiClient.updateOrder(orderId, formData);
-      console.log("Order updated successfully");
+      // console.log("Order updated successfully");
 
       // Update local storage
       const storedOrders = await AsyncStorage.getItem("orders");
@@ -243,7 +243,7 @@ export default function TaskDetail({ route, navigation }) {
       Alert.alert("Success", "Order completed successfully!");
       navigation.navigate("Home", { screen: "HomeMain" });
     } catch (error) {
-      console.error("Error completing order:", error);
+      // console.error("Error completing order:", error);
       Alert.alert("Error", "Failed to complete order. Please try again.");
     }
   };
@@ -431,7 +431,7 @@ export default function TaskDetail({ route, navigation }) {
             <View
               style={styles.canvasContainer}
               onTouchStart={(event) => {
-                console.log("Direct touch start");
+                // console.log("Direct touch start");
                 event.preventDefault(); // Prevent default touch behavior
                 const touch = event.nativeEvent.touches[0];
                 if (touch) {
@@ -439,7 +439,7 @@ export default function TaskDetail({ route, navigation }) {
                   const relativeX = touch.locationX;
                   const relativeY = touch.locationY;
                   const newPoint = { x: relativeX, y: relativeY };
-                  console.log("Direct touch point:", newPoint);
+                  // console.log("Direct touch point:", newPoint);
                   currentPathRef.current = [newPoint];
                   setCurrentPath([newPoint]);
                 }
@@ -458,10 +458,10 @@ export default function TaskDetail({ route, navigation }) {
                 }
               }}
               onTouchEnd={() => {
-                console.log("Direct touch end, currentPath length:", currentPathRef.current.length);
+                // console.log("Direct touch end, currentPath length:", currentPathRef.current.length);
                 if (currentPathRef.current.length > 0) {
                   const pathToAdd = [...currentPathRef.current];
-                  console.log("Adding completed path with", pathToAdd.length, "points");
+                  // console.log("Adding completed path with", pathToAdd.length, "points");
                   setPaths(prev => [...prev, pathToAdd]);
                   currentPathRef.current = [];
                   setCurrentPath([]);
@@ -473,10 +473,10 @@ export default function TaskDetail({ route, navigation }) {
                 collapsable={false}
                 style={styles.canvas}
               >
-                {console.log("Rendering paths:", paths.length, "paths")}
+                {/* console.log("Rendering paths:", paths.length, "paths") */}
                 {/* Draw completed paths as black strokes */}
                 {paths.map((path, pathIndex) => {
-                  console.log(`Rendering path ${pathIndex} with ${path.length} points`);
+                  // console.log(`Rendering path ${pathIndex} with ${path.length} points`);
                   const pathElements = [];
                   for (let i = 0; i < path.length - 1; i++) {
                     const point1 = path[i];

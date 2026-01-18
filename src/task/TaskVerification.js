@@ -9,7 +9,7 @@ import BackButton from "../components/BackButton";
 
 export default function TaskVerification({ navigation, route }) {
   const task = route?.params?.task;
-  console.log("Task:", task);
+  // console.log("Task:", task);
   const taskId = task?._id;
 
   const [locationVerified, setLocationVerified] = useState(false);
@@ -23,19 +23,19 @@ export default function TaskVerification({ navigation, route }) {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        console.log('Location permission denied');
+        // console.log('Location permission denied');
         return;
       }
 
       const location = await Location.getCurrentPositionAsync({});
       const { latitude: userLat, longitude: userLng } = location.coords;
-      console.log("Mobile Location:", { latitude: userLat, longitude: userLng });
+      // console.log("Mobile Location:", { latitude: userLat, longitude: userLng });
       const projectLat = parseFloat(project.latitude.$numberDecimal || project.latitude);
       const projectLng = parseFloat(project.longitude.$numberDecimal || project.longitude);
 
       // Calculate distance using haversine formula
       const distance = getDistanceFromLatLonInKm(userLat, userLng, projectLat, projectLng) * 1000; // in meters
-      console.log(`Distance to project: ${distance} meters`);
+      // console.log(`Distance to project: ${distance} meters`);
       setDistance(distance);
 
       // Verify if within 100 meters

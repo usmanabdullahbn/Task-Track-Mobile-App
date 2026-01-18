@@ -38,12 +38,12 @@ export default function ProfileScreen({ setIsLoggedIn }) {
         const storedUser = await AsyncStorage.getItem("user");
         if (storedUser) {
           const parsedUser = JSON.parse(storedUser);
-          console.log("Loaded user from storage:", parsedUser);
-          console.log("User ID fields:", { id: parsedUser?.id, _id: parsedUser?._id });
+          // console.log("Loaded user from storage:", parsedUser);
+          // console.log("User ID fields:", { id: parsedUser?.id, _id: parsedUser?._id });
           setUser(parsedUser);
         }
       } catch (error) {
-        console.error("Failed to load user:", error);
+        // console.error("Failed to load user:", error);
       }
     };
 
@@ -89,8 +89,8 @@ export default function ProfileScreen({ setIsLoggedIn }) {
     setPasswordLoading(true);
     try {
       const userId = user?._id || user?.id;
-      console.log("User object:", user);
-      console.log("Attempting to change password for user ID:", userId);
+      // console.log("User object:", user);
+      // console.log("Attempting to change password for user ID:", userId);
 
       if (!userId) {
         throw new Error("User ID not found. Please logout and login again.");
@@ -101,7 +101,7 @@ export default function ProfileScreen({ setIsLoggedIn }) {
         newPassword: passwordForm.newPassword,
       });
 
-      console.log("Password changed successfully:", result);
+      // console.log("Password changed successfully:", result);
       setPasswordLoading(false);
       setShowPasswordModal(false);
       setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
@@ -113,9 +113,9 @@ export default function ProfileScreen({ setIsLoggedIn }) {
         },
       ]);
     } catch (error) {
-      console.error("Password change error:", error);
-      console.error("Error message:", error.message);
-      console.error("Full error object:", JSON.stringify(error, null, 2));
+      // console.error("Password change error:", error);
+      // console.error("Error message:", error.message);
+      // console.error("Full error object:", JSON.stringify(error, null, 2));
       setPasswordLoading(false);
       setPasswordError(
         error.message || "Failed to change password. Please try again."
@@ -145,7 +145,7 @@ export default function ProfileScreen({ setIsLoggedIn }) {
               await AsyncStorage.removeItem("token");
               setIsLoggedIn(false);
             } catch (error) {
-              console.error("Error clearing user data:", error);
+              // console.error("Error clearing user data:", error);
             }
           },
         },

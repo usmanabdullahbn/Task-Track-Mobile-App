@@ -55,11 +55,11 @@ export default function AllTasks({ navigation, route }) {
                 const tasksJson = await AsyncStorage.getItem("tasks");
                 if (tasksJson) {
                     const parsedTasks = JSON.parse(tasksJson);
-                    console.log("Tasks from storage:", parsedTasks);
+                    // console.log("Tasks from storage:", parsedTasks);
                     setTasks(Array.isArray(parsedTasks) ? parsedTasks : []);
                 }
             } catch (err) {
-                console.error("Error loading tasks:", err);
+                // console.error("Error loading tasks:", err);
                 setError(err.message);
             }
         })();

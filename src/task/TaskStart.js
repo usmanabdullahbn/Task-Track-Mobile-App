@@ -13,7 +13,7 @@ import { apiClient } from "../lib/api-client";
 export default function TaskStart({ navigation, route }) {
   const taskId = route?.params?.taskId;
   useEffect(() => {
-    console.log("Task ID on Start  page", taskId)
+    // console.log("Task ID on Start  page", taskId)
   }, [taskId]);
   // console.log("Task ID on Start  page",taskId)
 
@@ -37,7 +37,7 @@ export default function TaskStart({ navigation, route }) {
             }
           }
         } catch (error) {
-          console.error('Error fetching task:', error);
+          // console.error('Error fetching task:', error);
         }
       }
     };
@@ -116,7 +116,7 @@ export default function TaskStart({ navigation, route }) {
       const updatedTask = await apiClient.updateTask(taskId, formData);
 
       // Console log the updated task object
-      console.log("Updated Task Object:", updatedTask);
+      // console.log("Updated Task Object:", updatedTask);
 
       Alert.alert("Success", "Task photo and comments saved successfully");
 
@@ -127,7 +127,7 @@ export default function TaskStart({ navigation, route }) {
         comments: comments,
       });
     } catch (error) {
-      console.error("Error saving task:", error);
+      // console.error("Error saving task:", error);
       Alert.alert("Error", error.message || "Failed to save task photo and comments");
     } finally {
       setIsLoading(false);

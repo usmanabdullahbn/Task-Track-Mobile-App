@@ -10,7 +10,7 @@ import { apiClient } from "../lib/api-client";
 
 export default function TaskCompelete({ navigation, route }) {
   const taskId = route?.params?.taskId;
-  console.log("Task ID on Start  page", taskId)
+  // console.log("Task ID on Start  page", taskId)
 
 
   const [task, setTask] = useState(null);
@@ -34,7 +34,7 @@ export default function TaskCompelete({ navigation, route }) {
             }
           }
         } catch (error) {
-          console.error('Error fetching task:', error);
+          // console.error('Error fetching task:', error);
         }
       }
     };
@@ -113,14 +113,14 @@ export default function TaskCompelete({ navigation, route }) {
       const updatedTask = await apiClient.updateTask(taskId, formData);
 
       // Console log the updated task object
-      console.log("Updated Task Object:", updatedTask);
+      // console.log("Updated Task Object:", updatedTask);
 
       Alert.alert("Success", "Task completed successfully");
 
       // Navigate to home
       navigation.navigate("Home", { screen: "HomeMain" });
     } catch (error) {
-      console.error("Error completing task:", error);
+      // console.error("Error completing task:", error);
       Alert.alert("Error", error.message || "Failed to complete task");
     } finally {
       setIsLoading(false);

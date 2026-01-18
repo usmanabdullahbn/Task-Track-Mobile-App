@@ -30,7 +30,7 @@ export default function HomeScreen({ navigation }) {
       const userJson = await AsyncStorage.getItem("user");
       const user = userJson ? JSON.parse(userJson) : null;
       const userId = user?._id;
-      console.log("LocalStorage - User ", user);
+      // console.log("LocalStorage - User ", user);
 
       if (!userId) {
         setError("User ID not found");
@@ -42,7 +42,7 @@ export default function HomeScreen({ navigation }) {
         await AsyncStorage.setItem("orders", JSON.stringify([])); // store empty orders
         await AsyncStorage.setItem("assets", JSON.stringify([])); // store empty assets
         await AsyncStorage.setItem("projects", JSON.stringify([])); // store empty projects
-        console.log("LocalStorage cleared - user not found");
+        // console.log("LocalStorage cleared - user not found");
         return;
       }
       // console.log(userId)
@@ -53,9 +53,9 @@ export default function HomeScreen({ navigation }) {
       // store tasks in AsyncStorage
       try {
         await AsyncStorage.setItem("tasks", JSON.stringify(tasksArray));
-        console.log("LocalStorage - Tasks stored:", tasksArray.length, "tasks");
+        // console.log("LocalStorage - Tasks stored:", tasksArray.length, "tasks");
       } catch (e) {
-        console.warn("Failed to save tasks to storage:", e);
+        // console.warn("Failed to save tasks to storage:", e);
       }
 
       // Initialize variables for fetched data
@@ -87,16 +87,16 @@ export default function HomeScreen({ navigation }) {
                 fetchedOrders.push(orderData);
               }
             } catch (orderErr) {
-              console.error("Error fetching order with ID", orderId, ":", orderErr);
+              // console.error("Error fetching order with ID", orderId, ":", orderErr);
             }
           }
 
           // Store orders in AsyncStorage
           try {
             await AsyncStorage.setItem("orders", JSON.stringify(fetchedOrders));
-            console.log("LocalStorage - Orders stored:", fetchedOrders.length, "orders");
+            // console.log("LocalStorage - Orders stored:", fetchedOrders.length, "orders");
           } catch (e) {
-            console.warn("Failed to save orders to storage:", e);
+            // console.warn("Failed to save orders to storage:", e);
           }
 
           // Calculate order stats
@@ -114,11 +114,11 @@ export default function HomeScreen({ navigation }) {
           });
 
           // Log order stats
-          console.log("=== ORDER STATS ===");
-          console.log("Total Orders:", totalOrders);
-          console.log("Pending Orders:", pendingOrders);
-          console.log("In Progress Orders:", inProgressOrders);
-          console.log("==================");
+          // console.log("=== ORDER STATS ===");
+          // console.log("Total Orders:", totalOrders);
+          // console.log("Pending Orders:", pendingOrders);
+          // console.log("In Progress Orders:", inProgressOrders);
+          // console.log("==================");
 
           // Update stats with order data
           setStats(prevStats => ({
@@ -130,7 +130,7 @@ export default function HomeScreen({ navigation }) {
             cancelledOrders,
           }));
         } catch (err) {
-          console.error("Error fetching orders:", err);
+          // console.error("Error fetching orders:", err);
         }
       }
 
@@ -153,19 +153,19 @@ export default function HomeScreen({ navigation }) {
                 fetchedAssets.push(assetData);
               }
             } catch (assetErr) {
-              console.error("Error fetching asset with ID", assetId, ":", assetErr);
+              // console.error("Error fetching asset with ID", assetId, ":", assetErr);
             }
           }
 
           // Store assets in AsyncStorage
           try {
             await AsyncStorage.setItem("assets", JSON.stringify(fetchedAssets));
-            console.log("LocalStorage - Assets stored:", fetchedAssets.length, "assets");
+            // console.log("LocalStorage - Assets stored:", fetchedAssets.length, "assets");
           } catch (e) {
-            console.warn("Failed to save assets to storage:", e);
+            // console.warn("Failed to save assets to storage:", e);
           }
         } catch (err) {
-          console.error("Error fetching assets:", err);
+          // console.error("Error fetching assets:", err);
         }
       }
 
@@ -188,19 +188,19 @@ export default function HomeScreen({ navigation }) {
                 fetchedProjects.push(projectData);
               }
             } catch (projectErr) {
-              console.error("Error fetching project with ID", projectId, ":", projectErr);
+              // console.error("Error fetching project with ID", projectId, ":", projectErr);
             }
           }
 
           // Store projects in AsyncStorage
           try {
             await AsyncStorage.setItem("projects", JSON.stringify(fetchedProjects));
-            console.log("LocalStorage - Projects stored:", fetchedProjects.length, "projects");
+            // console.log("LocalStorage - Projects stored:", fetchedProjects.length, "projects");
           } catch (e) {
-            console.warn("Failed to save projects to storage:", e);
+            // console.warn("Failed to save projects to storage:", e);
           }
         } catch (err) {
-          console.error("Error fetching projects:", err);
+          // console.error("Error fetching projects:", err);
         }
       }
 
@@ -231,22 +231,22 @@ export default function HomeScreen({ navigation }) {
       setError(null);
 
       // Log summary of all localStorage data
-      console.log("=== LocalStorage Summary ===");
-      console.log("User:", user ? { _id: user._id, name: user.name, email: user.email } : null);
-      console.log("Tasks:", tasksArray);
-      console.log("Orders:", fetchedOrders);
-      console.log("Assets:", fetchedAssets);
-      console.log("Projects:", fetchedProjects);
-      console.log("===========================");
+      // console.log("=== LocalStorage Summary ===");
+      // console.log("User:", user ? { _id: user._id, name: user.name, email: user.email } : null);
+      // console.log("Tasks:", tasksArray);
+      // console.log("Orders:", fetchedOrders);
+      // console.log("Assets:", fetchedAssets);
+      // console.log("Projects:", fetchedProjects);
+      // console.log("===========================");
     } catch (err) {
-      console.error("Failed to fetch tasks by user:", err);
+      // console.error("Failed to fetch tasks by user:", err);
       // clear stored tasks and orders on error
       try {
         await AsyncStorage.setItem("tasks", JSON.stringify([]));
         await AsyncStorage.setItem("orders", JSON.stringify([]));
         await AsyncStorage.setItem("assets", JSON.stringify([]));
         await AsyncStorage.setItem("projects", JSON.stringify([]));
-        console.log("LocalStorage cleared due to error");
+        // console.log("LocalStorage cleared due to error");
       } catch (e) {
         /* ignore */
       }
@@ -276,7 +276,7 @@ export default function HomeScreen({ navigation }) {
       if (storedOrders) {
         const ordersList = JSON.parse(storedOrders);
         setOrders(ordersList);
-        console.log("Loaded stored orders:", ordersList);
+        // console.log("Loaded stored orders:", ordersList);
 
         // Calculate order stats
         let totalOrders = ordersList.length;
@@ -299,11 +299,11 @@ export default function HomeScreen({ navigation }) {
         });
 
         // Log order stats from localStorage
-        console.log("=== ORDER STATS (from localStorage) ===");
-        console.log("Total Orders:", totalOrders);
-        console.log("Pending Orders:", pendingOrders);
-        console.log("In Progress Orders:", inProgressOrders);
-        console.log("========================================");
+        // console.log("=== ORDER STATS (from localStorage) ===");
+        // console.log("Total Orders:", totalOrders);
+        // console.log("Pending Orders:", pendingOrders);
+        // console.log("In Progress Orders:", inProgressOrders);
+        // console.log("========================================");
 
         // Update stats with calculated order data
         setStats(prevStats => ({
@@ -315,13 +315,13 @@ export default function HomeScreen({ navigation }) {
           cancelledOrders,
         }));
 
-        console.log("Order stats calculated:", { totalOrders, pendingOrders, inProgressOrders });
+        // console.log("Order stats calculated:", { totalOrders, pendingOrders, inProgressOrders });
       }
 
       if (storedTasks) {
         const tasksList = JSON.parse(storedTasks);
         setTasks(tasksList);
-        console.log("Loaded stored tasks:", tasksList);
+        // console.log("Loaded stored tasks:", tasksList);
 
         // Calculate task stats
         let totalTasks = tasksList.length;
@@ -350,10 +350,10 @@ export default function HomeScreen({ navigation }) {
           onHoldTasks: onHold,
         }));
 
-        console.log("Task stats calculated:", { totalTasks, todo, inProgress, completed, onHold });
+        // console.log("Task stats calculated:", { totalTasks, todo, inProgress, completed, onHold });
       }
     } catch (err) {
-      console.error("Error loading stored data:", err);
+      // console.error("Error loading stored data:", err);
     }
   };
 
@@ -361,12 +361,12 @@ export default function HomeScreen({ navigation }) {
     try {
       // Clear data localStorage (but keep user logged in)
       await AsyncStorage.multiRemove(["tasks", "orders", "assets", "projects"]);
-      console.log("LocalStorage data cleared for refresh - user session preserved");
+      // console.log("LocalStorage data cleared for refresh - user session preserved");
 
       // Then re-fetch all data
       await fetchTasksByUser();
     } catch (error) {
-      console.error("Error during refresh:", error);
+      // console.error("Error during refresh:", error);
       // Still try to fetch data even if clearing failed
       await fetchTasksByUser();
     }

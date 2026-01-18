@@ -62,7 +62,7 @@ export default function PendingTasks({ navigation, route }) {
 
         // Get orders from local storage
         const storedOrders = await AsyncStorage.getItem("orders");
-        console.log("Stored orders data:", storedOrders);
+        // console.log("Stored orders data:", storedOrders);
 
         if (!storedOrders) {
           setError("No orders found in local storage");
@@ -71,7 +71,7 @@ export default function PendingTasks({ navigation, route }) {
         }
 
         const orders = JSON.parse(storedOrders);
-        console.log("Parsed orders:", orders);
+        // console.log("Parsed orders:", orders);
 
         if (!Array.isArray(orders) || orders.length === 0) {
           setError("No orders available");
@@ -82,7 +82,7 @@ export default function PendingTasks({ navigation, route }) {
         setOrders(orders);
         setError(null);
       } catch (err) {
-        console.error("Error fetching orders from storage:", err);
+        // console.error("Error fetching orders from storage:", err);
         setError(err.message || "Failed to load orders");
         setOrders([]);
       } finally {

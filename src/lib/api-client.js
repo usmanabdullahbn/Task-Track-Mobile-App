@@ -93,9 +93,9 @@ export const apiClient = {
         headers["Authorization"] = `Bearer ${token}`;
       }
 
-      console.log("Making password change request to:", `${API_BASE_URL}/users/${id}/change-password`);
-      console.log("Headers:", headers);
-      console.log("Password data:", passwordData);
+      // console.log("Making password change request to:", `${API_BASE_URL}/users/${id}/change-password`);
+      // console.log("Headers:", headers);
+      // console.log("Password data:", passwordData);
 
       const response = await fetch(
         `${API_BASE_URL}/users/${id}/change-password`,
@@ -106,28 +106,28 @@ export const apiClient = {
         }
       );
 
-      console.log("Response status:", response.status);
-      console.log("Response ok:", response.ok);
+      // console.log("Response status:", response.status);
+      // console.log("Response ok:", response.ok);
 
       if (!response.ok) {
         let errorMessage = "Failed to update password";
         try {
           const errorData = await response.json();
-          console.error("Error response data:", errorData);
+          // console.error("Error response data:", errorData);
           errorMessage = errorData.message || errorData.error || errorMessage;
         } catch (e) {
           const errorText = await response.text();
-          console.error("Error response text:", errorText);
+          // console.error("Error response text:", errorText);
           errorMessage = errorText || errorMessage;
         }
         throw new Error(errorMessage);
       }
 
       const result = await response.json();
-      console.log("Password change response:", result);
+      // console.log("Password change response:", result);
       return result;
     } catch (error) {
-      console.error("Password change API error:", error);
+      // console.error("Password change API error:", error);
       throw error;
     }
   },
