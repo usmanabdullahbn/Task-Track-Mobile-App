@@ -236,7 +236,8 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: "center",
-    marginBottom: 48,
+    marginBottom: -20,
+    marginTop: -60,
   },
   logoBadge: {
     width: 60,

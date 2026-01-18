@@ -39,7 +39,7 @@ export default function PendingTasks({ navigation, route }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const statusOptions = ["All", "Pending", "In Progress", "Completed", "On Hold"];
+  const statusOptions = ["All", "Pending", "In Progress", "Completed", "Cancelled"];
 
   // Apply filter from route params on mount
   useEffect(() => {

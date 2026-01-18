@@ -10,6 +10,8 @@ export default function HomeScreen({ navigation }) {
     totalOrders: 0,
     pendingOrders: 0,
     inProgressOrders: 0,
+    completedOrders: 0,
+    cancelledOrders: 0,
     totalTasks: 0,
     todoTasks: 0,
     inProgressTasks: 0,
@@ -101,10 +103,14 @@ export default function HomeScreen({ navigation }) {
           totalOrders = fetchedOrders.length;
           pendingOrders = 0;
           inProgressOrders = 0;
+          let completedOrders = 0;
+          let cancelledOrders = 0;
           fetchedOrders.forEach(o => {
             const st = (o.status || "").toString().toLowerCase();
             if (st.includes("pending")) pendingOrders++;
             else if (st.includes("progress") || st.includes("in progress")) inProgressOrders++;
+            else if (st.includes("complete") || st.includes("completed")) completedOrders++;
+            else if (st.includes("cancel") || st.includes("cancelled")) cancelledOrders++;
           });
 
           // Log order stats
@@ -120,6 +126,8 @@ export default function HomeScreen({ navigation }) {
             totalOrders,
             pendingOrders,
             inProgressOrders,
+            completedOrders,
+            cancelledOrders,
           }));
         } catch (err) {
           console.error("Error fetching orders:", err);
@@ -274,6 +282,8 @@ export default function HomeScreen({ navigation }) {
         let totalOrders = ordersList.length;
         let pendingOrders = 0;
         let inProgressOrders = 0;
+        let completedOrders = 0;
+        let cancelledOrders = 0;
 
         ordersList.forEach(order => {
           const status = (order.status || "").toString().toLowerCase();
@@ -281,6 +291,10 @@ export default function HomeScreen({ navigation }) {
             pendingOrders++;
           } else if (status.includes("progress") || status.includes("in progress") || status.includes("in-progress")) {
             inProgressOrders++;
+          } else if (status.includes("complete") || status.includes("completed")) {
+            completedOrders++;
+          } else if (status.includes("cancel") || status.includes("cancelled")) {
+            cancelledOrders++;
           }
         });
 
@@ -297,6 +311,8 @@ export default function HomeScreen({ navigation }) {
           totalOrders,
           pendingOrders,
           inProgressOrders,
+          completedOrders,
+          cancelledOrders,
         }));
 
         console.log("Order stats calculated:", { totalOrders, pendingOrders, inProgressOrders });
@@ -375,6 +391,8 @@ export default function HomeScreen({ navigation }) {
     { label: "Total Order", value: stats.totalOrders ?? 0, icon: "cart", bg: "#6366f1", iconBg: "#4f46e5" },
     { label: "Pending Order", value: stats.pendingOrders ?? 0, icon: "time", bg: "#14b8a6", iconBg: "#0d9488" },
     { label: "In Progress", value: stats.inProgressOrders ?? 0, icon: "play", bg: "#f97316", iconBg: "#ea580c" },
+    { label: "Completed Order", value: stats.completedOrders ?? 0, icon: "checkmark-done", bg: "#10b981", iconBg: "#059669" },
+    { label: "Cancelled Order", value: stats.cancelledOrders ?? 0, icon: "close-circle", bg: "#ef4444", iconBg: "#dc2626" },
   ];
 
   const taskStatCards = [
@@ -451,24 +469,45 @@ export default function HomeScreen({ navigation }) {
             {/* Stats Section */}
             <View style={styles.statsContainer}>
               {activeTab === "orders" ? (
-                <View style={[styles.statsGrid]}>
-                  {statCards.map((stat, index) => {
-                    let filterStatus = null;
-                    if (stat.label.includes("Pending")) {
-                      filterStatus = "pending";
-                    } else if (stat.label.includes("In Progress")) {
-                      filterStatus = "in progress";
-                    }
-                    return (
-                      <TouchableOpacity key={index} style={[styles.statCard, { backgroundColor: stat.bg }]} onPress={() => navigation.navigate('PendingTasks', filterStatus ? { status: filterStatus } : {})}>
-                        <View style={[styles.statIcon, { backgroundColor: stat.iconBg }]}>
-                          <Ionicons name={stat.icon} size={28} color="#fff" />
-                        </View>
-                        <Text style={styles.statValue}>{stat.value}</Text>
-                        <Text style={styles.statLabel}>{stat.label}</Text>
-                      </TouchableOpacity>
-                    );
-                  })}
+                <View>
+                  <View style={[styles.statsGrid]}>
+                    {statCards.slice(0, 3).map((stat, index) => {
+                      let filterStatus = null;
+                      if (stat.label.includes("Pending")) {
+                        filterStatus = "pending";
+                      } else if (stat.label.includes("In Progress")) {
+                        filterStatus = "in progress";
+                      }
+                      return (
+                        <TouchableOpacity key={index} style={[styles.statCard, { backgroundColor: stat.bg }]} onPress={() => navigation.navigate('PendingTasks', filterStatus ? { status: filterStatus } : {})}>
+                          <View style={[styles.statIcon, { backgroundColor: stat.iconBg }]}>
+                            <Ionicons name={stat.icon} size={28} color="#fff" />
+                          </View>
+                          <Text style={styles.statValue}>{stat.value}</Text>
+                          <Text style={styles.statLabel}>{stat.label}</Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                  <View style={[styles.statsGrid, { marginTop: 12 }]}>
+                    {statCards.slice(3).map((stat, index) => {
+                      let filterStatus = null;
+                      if (stat.label.includes("Completed")) {
+                        filterStatus = "completed";
+                      } else if (stat.label.includes("Cancelled")) {
+                        filterStatus = "cancelled";
+                      }
+                      return (
+                        <TouchableOpacity key={index + 3} style={[styles.statCard, { backgroundColor: stat.bg }]} onPress={() => navigation.navigate('PendingTasks', filterStatus ? { status: filterStatus } : {})}>
+                          <View style={[styles.statIcon, { backgroundColor: stat.iconBg }]}>
+                            <Ionicons name={stat.icon} size={28} color="#fff" />
+                          </View>
+                          <Text style={styles.statValue}>{stat.value}</Text>
+                          <Text style={styles.statLabel}>{stat.label}</Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
                 </View>
               ) : (
                 <View>
