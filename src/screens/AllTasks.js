@@ -36,78 +36,37 @@ export default function AllTasks({ navigation, route }) {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedFilter, setSelectedFilter] = useState("All");
     const [tasks, setTasks] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [loggedInUserId, setLoggedInUserId] = useState(null);
 
-    const statusOptions = ["All", "Pending", "In Progress", "Completed", "On Hold"];
+    const statusOptions = ["All", "Todo", "In Progress", "Completed", "On Hold"];
 
-    // Apply filter from route params on mount
+    // Set filter based on route parameter
     useEffect(() => {
         if (route?.params?.status) {
-            const statusParam = route.params.status;
-            // Capitalize first letter of each word
-            const formattedStatus = statusParam
-                .split(" ")
-                .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                .join(" ");
-            setSelectedFilter(formattedStatus);
+            setSelectedFilter(route.params.status);
         }
     }, [route?.params?.status]);
 
-    // Fetch logged in user and tasks from local storage
+    // Load tasks on mount
     useEffect(() => {
-        const fetchTasksFromStorage = async () => {
+        (async () => {
             try {
-                setLoading(true);
-
-                // Get logged in user info
-                const userData = await AsyncStorage.getItem("user");
-                let userId = null;
-                if (userData) {
-                    const user = JSON.parse(userData);
-                    userId = user._id || user.id;
-                    setLoggedInUserId(userId);
-                    console.log("Logged in user ID:", userId);
+                const tasksJson = await AsyncStorage.getItem("tasks");
+                if (tasksJson) {
+                    const parsedTasks = JSON.parse(tasksJson);
+                    console.log("Tasks from storage:", parsedTasks);
+                    setTasks(Array.isArray(parsedTasks) ? parsedTasks : []);
                 }
-
-                // Get tasks from local storage
-                const storedTasks = await AsyncStorage.getItem("tasks");
-                console.log("Stored tasks data:", storedTasks);
-
-                if (!storedTasks) {
-                    setError("No tasks found in local storage");
-                    setLoading(false);
-                    return;
-                }
-
-                const allTasks = JSON.parse(storedTasks);
-                console.log("Parsed tasks:", allTasks);
-                console.log("Total tasks in storage:", allTasks.length);
-
-                if (!Array.isArray(allTasks) || allTasks.length === 0) {
-                    setError("No tasks available");
-                    setLoading(false);
-                    return;
-                }
-
-                // Use all tasks since they should already be filtered for the logged-in user
-                // from the Home screen's fetchTasksByUser call
-                setTasks(allTasks);
-                setError(null);
             } catch (err) {
-                console.error("Error fetching tasks from storage:", err);
-                setError(err.message || "Failed to load tasks");
-                setTasks([]);
-            } finally {
-                setLoading(false);
+                console.error("Error loading tasks:", err);
+                setError(err.message);
             }
-        };
-
-        fetchTasksFromStorage();
+        })();
     }, []);
 
     const filteredTasks = tasks.filter((task) => {
+        if (!task) return false;
         const matchesSearch =
             (task.description || task.title || "")
                 .toLowerCase()
@@ -121,71 +80,84 @@ export default function AllTasks({ navigation, route }) {
         return matchesSearch && matchesStatus;
     });
 
-    const renderTaskCard = ({ item }) => (
-        <TouchableOpacity
-            style={styles.taskCard}
-            onPress={() =>
-                navigation.navigate("TaskDetail", { taskId: item._id || item.id })
-            }
-        >
-            <View style={styles.cardHeader}>
-                <Text style={styles.taskTitle}>{item.title}</Text>
-                <View
-                    style={[
-                        styles.statusBadge,
-                        { backgroundColor: getStatusColor(item.status || item.completed).bg },
-                    ]}
-                >
-                    <Text
+    const renderTaskCard = ({ item }) => {
+        // Handle cases where properties might be objects
+        const getStringValue = (value) => {
+            if (!value) return "N/A";
+            if (typeof value === "string") return value;
+            if (typeof value === "object" && value.name) return value.name;
+            if (typeof value === "object" && value.title) return value.title;
+            return JSON.stringify(value);
+        };
+
+        return (
+            <TouchableOpacity
+                style={styles.taskCard}
+                onPress={() =>
+                    navigation.navigate("Tasks", { screen: "TaskVerification", params: { taskId: item._id || item.id, task: item } })
+                }
+            >
+                <View style={styles.cardHeader}>
+                    <Text style={styles.taskTitle}>{item.title}</Text>
+                    <View
                         style={[
-                            styles.statusText,
-                            {
-                                color: getStatusColor(item.status || item.completed).color,
-                            },
+                            styles.statusBadge,
+                            { backgroundColor: getStatusColor(item.status || item.completed).bg },
                         ]}
                     >
-                        {item.status ||
-                            (item.completed === "Yes" || item.completed === true
-                                ? "Completed"
-                                : "Pending")}
-                    </Text>
+                        <Text
+                            style={[
+                                styles.statusText,
+                                {
+                                    color: getStatusColor(item.status || item.completed).color,
+                                },
+                            ]}
+                        >
+                            {item.status ||
+                                (item.completed === "Yes" || item.completed === true
+                                    ? "Completed"
+                                    : "Pending")}
+                        </Text>
+                    </View>
                 </View>
-            </View>
 
-            <Text style={styles.projectInfo}>
-                {item.project || "No Project"} • Order: {item.order || "N/A"}
-            </Text>
+                <Text style={styles.projectInfo}>
+                    {getStringValue(item.project)} • Order: {getStringValue(item.order)}
+                </Text>
 
-            <View style={styles.detailsContainer}>
-                <View style={styles.detailItem}>
-                    <Ionicons name="person-outline" size={14} color="#6b7280" />
-                    <Text style={styles.detailText}>{item.customer || "N/A"}</Text>
+                <View style={styles.detailsContainer}>
+                    <View style={styles.detailItem}>
+                        <Ionicons name="person-outline" size={14} color="#6b7280" />
+                        <Text style={styles.detailText}>{getStringValue(item.customer)}</Text>
+                    </View>
+                    <View style={styles.detailItem}>
+                        <Ionicons name="time-outline" size={14} color="#6b7280" />
+                        <Text style={styles.detailText}>
+                            Duration: {item.duration || "N/A"} hrs
+                        </Text>
+                    </View>
                 </View>
-                <View style={styles.detailItem}>
-                    <Ionicons name="time-outline" size={14} color="#6b7280" />
-                    <Text style={styles.detailText}>
-                        Duration: {item.duration || "N/A"} hrs
-                    </Text>
-                </View>
-            </View>
 
-            {item.asset && (
-                <View style={styles.assetContainer}>
-                    <Ionicons name="cube-outline" size={14} color="#6b7280" />
-                    <Text style={styles.assetText}>{item.asset}</Text>
-                </View>
-            )}
-        </TouchableOpacity>
-    );
+                {item.asset && (
+                    <View style={styles.assetContainer}>
+                        <Ionicons name="cube-outline" size={14} color="#6b7280" />
+                        <Text style={styles.assetText}>{getStringValue(item.asset)}</Text>
+                    </View>
+                )}
+            </TouchableOpacity>
+        );
+    };
 
     return (
         <SafeAreaView style={styles.container}>
-            <BackButton onPress={() => navigation.goBack()} />
-            <Text style={styles.mainHeading}>All Tasks</Text>
+            <View style={styles.headerContainer}>
+                <BackButton onPress={() => navigation.goBack()} />
+                <Text style={styles.mainHeading}>All Tasks</Text>
+                <View style={{ width: 40 }} />
+            </View>
 
             {/* Filter Section */}
             <View style={styles.filterSection}>
-                <Text style={styles.filterTitle}>Filter by Status</Text>
                 <ScrollView
                     horizontal
                     showsHorizontalScrollIndicator={false}
@@ -217,7 +189,7 @@ export default function AllTasks({ navigation, route }) {
                 <Ionicons name="search-outline" size={20} color="#6b7280" />
                 <TextInput
                     style={styles.searchInput}
-                    placeholder="Search tasks, customer, project..."
+                    placeholder="Search tasks..."
                     value={searchQuery}
                     onChangeText={setSearchQuery}
                 />
@@ -227,33 +199,24 @@ export default function AllTasks({ navigation, route }) {
                 {filteredTasks.length} Tasks
             </Text>
 
-            {loading ? (
-                <View style={styles.loaderContainer}>
-                    <ActivityIndicator size="large" color="#00A73E" />
-                    <Text style={styles.loaderText}>Loading tasks...</Text>
-                </View>
-            ) : error ? (
+            {error && (
                 <View style={styles.errorContainer}>
-                    <Ionicons name="alert-circle-outline" size={40} color="#ef4444" />
                     <Text style={styles.errorText}>{error}</Text>
                 </View>
-            ) : filteredTasks && filteredTasks.length > 0 ? (
-                <View style={{ flex: 1 }}>
-                    <FlatList
-                        data={filteredTasks}
-                        renderItem={renderTaskCard}
-                        keyExtractor={(item, index) => (item._id || item.id || index).toString()}
-                        contentContainerStyle={styles.listContent}
-                        scrollEnabled={true}
-                    />
+            )}
+
+            {filteredTasks.length === 0 ? (
+                <View style={styles.emptyContainer}>
+                    <Text style={styles.emptyText}>No tasks found</Text>
                 </View>
             ) : (
-                <View style={styles.emptyContainer}>
-                    <Ionicons name="checkmark-done-outline" size={40} color="#d1d5db" />
-                    <Text style={styles.emptyText}>
-                        {searchQuery ? "No tasks match your search" : "No tasks found"}
-                    </Text>
-                </View>
+                <FlatList
+                    data={filteredTasks}
+                    renderItem={renderTaskCard}
+                    keyExtractor={(item, index) => (item._id || item.id || index).toString()}
+                    contentContainerStyle={styles.listContent}
+                    scrollEnabled={true}
+                />
             )}
         </SafeAreaView>
     );
@@ -264,15 +227,24 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: "#f9fafb",
     },
+    headerContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: "#e5e7eb",
+    },
     mainHeading: {
         fontSize: 24,
         fontWeight: "700",
         color: "#1f2937",
+        flex: 1,
         textAlign: "center",
-        marginVertical: 16,
-        paddingBottom: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: "#e5e7eb",
+    },
+    refreshButton: {
+        padding: 8,
     },
     searchContainer: {
         flexDirection: "row",
@@ -302,10 +274,7 @@ const styles = StyleSheet.create({
     filterSection: {
         paddingHorizontal: 16,
         marginVertical: 12,
-        backgroundColor: "#fff",
-        borderRadius: 12,
-        paddingVertical: 12,
-        marginHorizontal: 16,
+        marginHorizontal: 0,
     },
     filterTitle: {
         fontSize: 13,
@@ -441,5 +410,17 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: "#6b7280",
         textAlign: "center",
+    },
+    retryButton: {
+        marginTop: 20,
+        backgroundColor: "#00A73E",
+        paddingHorizontal: 24,
+        paddingVertical: 10,
+        borderRadius: 8,
+    },
+    retryButtonText: {
+        color: "#fff",
+        fontSize: 14,
+        fontWeight: "600",
     },
 });

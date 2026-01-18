@@ -106,10 +106,6 @@ export default function LoginScreen({ setIsLoggedIn, navigation }) {
             style={styles.logoImage}
             resizeMode="contain"
           />
-          <Text style={styles.appName}>TaskTrack</Text>
-          <Text style={styles.tagline}>
-            Your reliable companion for field operations
-          </Text>
         </View>
 
         <View style={styles.form}>
@@ -259,8 +255,8 @@ const styles = StyleSheet.create({
     borderColor: "rgba(0, 167, 62, 0.2)",
   },
   logoImage: {
-    width: 250,
-    height: 195,
+    width: 300,
+    height: 234,
     marginBottom: 12,
   },
   appName: {

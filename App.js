@@ -62,6 +62,9 @@ function HomeStackScreen() {
 
       <HomeStack.Screen name="WorkOrder" component={WorkOrderDetail} />
       <HomeStack.Screen name="TaskDetail" component={TaskDetail} />
+      <HomeStack.Screen name="TaskVerification" component={TaskVerification} />
+      <HomeStack.Screen name="TaskStart" component={TaskStart} />
+      <HomeStack.Screen name="TaskCompelete" component={TaskCompelete} />
     </HomeStack.Navigator>
   );
 }
