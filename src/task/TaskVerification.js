@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Location from "expo-location";
 import BackButton from "../components/BackButton";
+import { apiClient } from "../lib/api-client";
 
 export default function TaskVerification({ navigation, route }) {
   const task = route?.params?.task;
@@ -16,6 +17,7 @@ export default function TaskVerification({ navigation, route }) {
   const [project, setProject] = useState(null);
   const [distance, setDistance] = useState(null);
   const [isVerifying, setIsVerifying] = useState(true);
+  const [isStarting, setIsStarting] = useState(false);
 
   const verifyLocation = async () => {
     if (!project) return;
@@ -110,6 +112,55 @@ export default function TaskVerification({ navigation, route }) {
     navigation.navigate("TaskStart", { taskId });
   };
 
+  const handleStartTaskWithTimeline = async () => {
+    setIsStarting(true);
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        console.log('Location permission denied');
+        setIsStarting(false);
+        return;
+      }
+
+      const location = await Location.getCurrentPositionAsync({});
+      const { latitude, longitude } = location.coords;
+
+      // Get user info from storage
+      const userData = await AsyncStorage.getItem("user");
+      if (!userData) {
+        console.log("User data not found");
+        setIsStarting(false);
+        return;
+      }
+
+      const user = JSON.parse(userData);
+      const today = new Date().toISOString().split('T')[0]; // yyyy-mm-dd
+
+      // Save employee timeline
+      const timelineData = {
+        employeeId: user.id || user._id,
+        employeeName: user.name || user.username,
+        task: {
+          lat: latitude,
+          lng: longitude,
+          title: task.title || task.name,
+        },
+        date: today,
+      };
+
+      console.log("Saving employee timeline:", timelineData);
+      await apiClient.saveEmployeeTimeline(timelineData);
+
+      // Navigate to TaskStart
+      navigation.navigate("TaskStart", { taskId });
+    } catch (error) {
+      console.error("Error saving timeline:", error);
+      alert("Failed to save timeline. Please try again.");
+    } finally {
+      setIsStarting(false);
+    }
+  };
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -158,10 +209,15 @@ export default function TaskVerification({ navigation, route }) {
 
         {locationVerified ? (
           <TouchableOpacity
-            style={styles.startButton}
-            onPress={handleStartTask}
+            style={[styles.startButton, isStarting && styles.disabledButton]}
+            onPress={handleStartTaskWithTimeline}
+            disabled={isStarting}
           >
-            <Text style={styles.startButtonText}>Start Task</Text>
+            {isStarting ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={styles.startButtonText}>Start Task</Text>
+            )}
           </TouchableOpacity>
         ) : (
           <TouchableOpacity

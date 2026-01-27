@@ -17,6 +17,7 @@ export default function TaskCompelete({ navigation, route }) {
 
   const [comments, setComments] = useState("")
   const [photo, setPhoto] = useState(null)
+  const [photos, setPhotos] = useState([])
   const [showPhotoOptions, setShowPhotoOptions] = useState(false)
   const [photoError, setPhotoError] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -55,7 +56,7 @@ export default function TaskCompelete({ navigation, route }) {
       });
 
       if (!result.canceled) {
-        setPhoto(result.assets[0].uri);
+        addPhoto(result.assets[0].uri);
         setPhotoError(false);
         setShowPhotoOptions(false);
       }
@@ -73,7 +74,7 @@ export default function TaskCompelete({ navigation, route }) {
       });
 
       if (!result.canceled) {
-        setPhoto(result.assets[0].uri);
+        addPhoto(result.assets[0].uri);
         setPhotoError(false);
         setShowPhotoOptions(false);
       }
@@ -82,9 +83,22 @@ export default function TaskCompelete({ navigation, route }) {
     }
   };
 
+  const addPhoto = (uri) => {
+    setPhotos([...photos, uri]);
+    setPhoto(uri);
+  };
+
+  const generatePhotoName = (index) => {
+    if (index === 0) {
+      return "after";
+    } else {
+      return `after_${index}`;
+    }
+  };
+
   const handleFinishTask = async () => {
     // Validate photo is required
-    if (!photo) {
+    if (photos.length === 0) {
       setPhotoError(true);
       Alert.alert("Photo Required", "Please capture a photo before completing the task");
       return;
@@ -92,16 +106,20 @@ export default function TaskCompelete({ navigation, route }) {
 
     setIsLoading(true);
     try {
-      // Create FormData to send photo and comment
+      // Create FormData to send photos and comment
       const formData = new FormData();
 
-      // Append the photo
-      const photoName = photo.split('/').pop();
-      const photoType = `image/${photoName.split('.').pop()}`;
-      formData.append('files', {
-        uri: photo,
-        name: photoName,
-        type: photoType,
+      // Append all photos with proper naming
+      photos.forEach((photoUri, index) => {
+        const photoName = generatePhotoName(index);
+        const fileName = photoUri.split('/').pop();
+        const photoType = `image/${fileName.split('.').pop()}`;
+        
+        formData.append('files', {
+          uri: photoUri,
+          name: `${photoName}.${fileName.split('.').pop()}`,
+          type: photoType,
+        });
       });
 
       // Append comments
@@ -109,7 +127,7 @@ export default function TaskCompelete({ navigation, route }) {
       formData.append('actual_end_time', new Date().toISOString());
       formData.append('status', 'Completed');
 
-      // Update the task with photo and comments
+      // Update the task with photos and comments
       const updatedTask = await apiClient.updateTask(taskId, formData);
 
       // Console log the updated task object
@@ -149,15 +167,20 @@ export default function TaskCompelete({ navigation, route }) {
             </View>
           </View>
 
-          {photo ? (
+          {photos.length > 0 ? (
             <View>
-              <Image source={{ uri: photo }} style={styles.capturedImage} />
+              {photos.map((photoUri, index) => (
+                <View key={index} style={styles.photoContainer}>
+                  <Image source={{ uri: photoUri }} style={styles.capturedImage} />
+                  <Text style={styles.photoLabel}>{generatePhotoName(index)}</Text>
+                </View>
+              ))}
               <TouchableOpacity
                 style={styles.changePhotoButton}
                 onPress={() => setShowPhotoOptions(true)}
               >
-                <Ionicons name="refresh" size={16} color="#00A73E" />
-                <Text style={styles.changePhotoButtonText}>Change Photo</Text>
+                <Ionicons name="add-circle" size={16} color="#00A73E" />
+                <Text style={styles.changePhotoButtonText}>Add More Photos</Text>
               </TouchableOpacity>
             </View>
           ) : (
@@ -322,8 +345,18 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 300,
     borderRadius: 12,
-    marginBottom: 12,
+    marginBottom: 8,
     backgroundColor: "#f3f4f6",
+  },
+  photoContainer: {
+    marginBottom: 16,
+  },
+  photoLabel: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#6b7280",
+    marginTop: 4,
+    marginBottom: 8,
   },
   changePhotoButton: {
     flexDirection: "row",

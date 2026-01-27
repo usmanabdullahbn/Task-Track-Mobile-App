@@ -20,6 +20,7 @@ export default function TaskStart({ navigation, route }) {
   const [task, setTask] = useState(null);
   const [comments, setComments] = useState("")
   const [photo, setPhoto] = useState(null)
+  const [photos, setPhotos] = useState([])
   const [showPhotoOptions, setShowPhotoOptions] = useState(false)
   const [photoError, setPhotoError] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -58,7 +59,7 @@ export default function TaskStart({ navigation, route }) {
       });
 
       if (!result.canceled) {
-        setPhoto(result.assets[0].uri);
+        addPhoto(result.assets[0].uri);
         setPhotoError(false);
         setShowPhotoOptions(false);
       }
@@ -76,7 +77,7 @@ export default function TaskStart({ navigation, route }) {
       });
 
       if (!result.canceled) {
-        setPhoto(result.assets[0].uri);
+        addPhoto(result.assets[0].uri);
         setPhotoError(false);
         setShowPhotoOptions(false);
       }
@@ -85,9 +86,22 @@ export default function TaskStart({ navigation, route }) {
     }
   };
 
+  const addPhoto = (uri) => {
+    setPhotos([...photos, uri]);
+    setPhoto(uri); // Keep the latest photo as primary
+  };
+
+  const generatePhotoName = (index) => {
+    if (index === 0) {
+      return "before";
+    } else {
+      return `before_${index}`;
+    }
+  };
+
   const handleCompleteSetup = async () => {
     // Validate photo is required
-    if (!photo) {
+    if (photos.length === 0) {
       setPhotoError(true);
       Alert.alert("Photo Required", "Please capture a photo before proceeding");
       return;
@@ -95,16 +109,20 @@ export default function TaskStart({ navigation, route }) {
 
     setIsLoading(true);
     try {
-      // Create FormData to send photo and comment
+      // Create FormData to send photos and comment
       const formData = new FormData();
 
-      // Append the photo
-      const photoName = photo.split('/').pop();
-      const photoType = `image/${photoName.split('.').pop()}`;
-      formData.append('files', {
-        uri: photo,
-        name: photoName,
-        type: photoType,
+      // Append all photos with proper naming
+      photos.forEach((photoUri, index) => {
+        const photoName = generatePhotoName(index);
+        const fileName = photoUri.split('/').pop();
+        const photoType = `image/${fileName.split('.').pop()}`;
+        
+        formData.append('files', {
+          uri: photoUri,
+          name: `${photoName}.${fileName.split('.').pop()}`,
+          type: photoType,
+        });
       });
 
       // Append comments
@@ -112,23 +130,24 @@ export default function TaskStart({ navigation, route }) {
       formData.append('actual_start_time', new Date().toISOString());
       formData.append('status', 'In Progress');
 
-      // Update the task with photo and comments
+      // Update the task with photos and comments
       const updatedTask = await apiClient.updateTask(taskId, formData);
 
       // Console log the updated task object
       // console.log("Updated Task Object:", updatedTask);
 
-      Alert.alert("Success", "Task photo and comments saved successfully");
+      Alert.alert("Success", "Task photos and comments saved successfully");
 
       // Navigate to next screen with task data
       navigation.navigate("TaskCompelete", {
         taskId: taskId,
         initialPhoto: photo,
+        photos: photos,
         comments: comments,
       });
     } catch (error) {
       // console.error("Error saving task:", error);
-      Alert.alert("Error", error.message || "Failed to save task photo and comments");
+      Alert.alert("Error", error.message || "Failed to save task photos and comments");
     } finally {
       setIsLoading(false);
     }
@@ -159,15 +178,20 @@ export default function TaskStart({ navigation, route }) {
             Ensure clear visibility of the task area and any specific requirements
           </Text>
 
-          {photo ? (
+          {photos.length > 0 ? (
             <View>
-              <Image source={{ uri: photo }} style={styles.capturedImage} />
+              {photos.map((photoUri, index) => (
+                <View key={index} style={styles.photoContainer}>
+                  <Image source={{ uri: photoUri }} style={styles.capturedImage} />
+                  <Text style={styles.photoLabel}>{generatePhotoName(index)}</Text>
+                </View>
+              ))}
               <TouchableOpacity
                 style={styles.changePhotoButton}
                 onPress={() => setShowPhotoOptions(true)}
               >
-                <Ionicons name="refresh" size={16} color="#00A73E" />
-                <Text style={styles.changePhotoButtonText}>Change Photo</Text>
+                <Ionicons name="add-circle" size={16} color="#00A73E" />
+                <Text style={styles.changePhotoButtonText}>Add More Photos</Text>
               </TouchableOpacity>
             </View>
           ) : (
@@ -352,8 +376,18 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 300,
     borderRadius: 12,
-    marginBottom: 12,
+    marginBottom: 8,
     backgroundColor: "#f3f4f6",
+  },
+  photoContainer: {
+    marginBottom: 16,
+  },
+  photoLabel: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#6b7280",
+    marginTop: 4,
+    marginBottom: 8,
   },
   changePhotoButton: {
     flexDirection: "row",

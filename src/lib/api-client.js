@@ -1,9 +1,10 @@
-// const API_BASE_URL = "http://10.0.0.90:4000/api";
+// const API_BASE_URL = "http://10.0.0.54:4000/api";
 // const API_BASE_URL = "http://192.168.137.212:4000/api";
 // const API_BASE_URL = "http://172.23.160.1:4000/api";
 // const API_BASE_URL = "http://127.0.0.1:4000/api";
 // const API_BASE_URL = "http://192.168.10.10:4000/api"; // Qatar IP
-const API_BASE_URL = "https://immediate-cultures-yale-interface.trycloudflare.com/api"; // Qatar live IP
+// const API_BASE_URL =
+  "https://immediate-cultures-yale-interface.trycloudflare.com/api"; // Qatar live IP
 // const API_BASE_URL = "http://localhost:4000/api";
 // const API_BASE_URL = "https://backend-task-track.onrender.com/api";
 
@@ -82,7 +83,8 @@ export const apiClient = {
   async changeUserPassword(id, passwordData) {
     try {
       // Get token from AsyncStorage for authentication
-      const AsyncStorage = require("@react-native-async-storage/async-storage").default;
+      const AsyncStorage =
+        require("@react-native-async-storage/async-storage").default;
       const token = await AsyncStorage.getItem("token");
 
       const headers = {
@@ -103,7 +105,7 @@ export const apiClient = {
           method: "PUT",
           headers: headers,
           body: JSON.stringify(passwordData),
-        }
+        },
       );
 
       // console.log("Response status:", response.status);
@@ -342,7 +344,6 @@ export const apiClient = {
     return data;
   },
 
-
   async getOrdersByProjectId(projectId) {
     const response = await fetch(`${API_BASE_URL}/orders/project${projectId}`);
     if (!response.ok) throw new Error("Failed to fetch customer orders");
@@ -399,7 +400,7 @@ export const apiClient = {
 
   async getAssetsByCustomerId(customerId) {
     const response = await fetch(
-      `${API_BASE_URL}/assets/customer/${customerId}`
+      `${API_BASE_URL}/assets/customer/${customerId}`,
     );
     if (!response.ok) throw new Error("Failed to fetch customer assets");
     return response.json();
@@ -469,13 +470,13 @@ export const apiClient = {
 
   async getTasksByUserId(userId, params = {}) {
     const queryParams = new URLSearchParams();
-    if (params.page) queryParams.append('page', params.page);
-    if (params.limit) queryParams.append('limit', params.limit);
-    if (params.status) queryParams.append('status', params.status);
-    if (params.priority) queryParams.append('priority', params.priority);
+    if (params.page) queryParams.append("page", params.page);
+    if (params.limit) queryParams.append("limit", params.limit);
+    if (params.status) queryParams.append("status", params.status);
+    if (params.priority) queryParams.append("priority", params.priority);
 
     const queryString = queryParams.toString();
-    const url = `${API_BASE_URL}/tasks/user/${userId}${queryString ? `?${queryString}` : ''}`;
+    const url = `${API_BASE_URL}/tasks/user/${userId}${queryString ? `?${queryString}` : ""}`;
 
     const response = await fetch(url);
     if (!response.ok) throw new Error("Failed to fetch user tasks");
@@ -522,6 +523,51 @@ export const apiClient = {
     });
 
     if (!response.ok) throw new Error("Failed to change task status");
+    return response.json();
+  },
+
+
+  // ============================
+  //       EMPLOYEE TIMELINES
+  // ============================
+
+  async saveEmployeeTimeline(timelineData) {
+    const response = await fetch(`${API_BASE_URL}/employee/timeline`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(timelineData),
+    });
+
+    if (!response.ok) throw new Error("Failed to save employee timeline");
+    return response.json();
+  },
+
+  async getAllTimelines() {
+    const response = await fetch(`${API_BASE_URL}/employee/timeline/all`);
+    if (!response.ok) throw new Error("Failed to fetch all timelines");
+    return response.json();
+  },
+
+  async getTimelineByDate(date) {
+    const response = await fetch(`${API_BASE_URL}/employee/timeline/date?date=${date}`);
+    if (!response.ok) throw new Error("Failed to fetch timelines by date");
+    return response.json();
+  },
+
+  async getTimelineByEmployeeId(employeeId) {
+    const response = await fetch(
+      `${API_BASE_URL}/employee/timeline/employee?employeeId=${employeeId}`,
+    );
+    if (!response.ok) throw new Error("Failed to fetch timelines by employee");
+    return response.json();
+  },
+
+  async getTimelineByEmployeeIdAndDate(employeeId, date) {
+    const response = await fetch(
+      `${API_BASE_URL}/employee/timeline/employee-date?employeeId=${employeeId}&date=${date}`,
+    );
+    if (!response.ok)
+      throw new Error("Failed to fetch timeline by employee and date");
     return response.json();
   },
 };
