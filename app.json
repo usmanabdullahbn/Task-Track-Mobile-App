@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "frontend",
+    "name": "SGI Task Track",
     "slug": "frontend",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/SGI TT Logo.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
