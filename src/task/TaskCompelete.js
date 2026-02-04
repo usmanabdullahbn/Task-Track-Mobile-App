@@ -122,13 +122,29 @@ export default function TaskCompelete({ navigation, route }) {
         });
       });
 
+      // Get end time in specified format (hr:min only)
+      const end_time = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+
       // Append comments
       formData.append('comments', comments);
-      formData.append('actual_end_time', new Date().toISOString());
+      formData.append('actual_end_time', end_time);
       formData.append('status', 'Completed');
 
       // Update the task with photos and comments
       const updatedTask = await apiClient.updateTask(taskId, formData);
+
+      // Get user/employee info from AsyncStorage
+      const userInfo = await AsyncStorage.getItem('userInfo');
+      const user = userInfo ? JSON.parse(userInfo) : null;
+      const employeeId = user?._id;
+
+      // Get current date in YYYY-MM-DD format
+      const currentDate = new Date().toISOString().split('T')[0];
+
+      // Call updateTaskEndTime if employeeId is available
+      if (employeeId && task?.title) {
+        await apiClient.updateTaskEndTime(employeeId, currentDate, task.title, end_time);
+      }
 
       // Console log the updated task object
       // console.log("Updated Task Object:", updatedTask);
