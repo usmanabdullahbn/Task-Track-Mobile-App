@@ -144,6 +144,7 @@ export default function TaskVerification({ navigation, route }) {
           lat: latitude,
           lng: longitude,
           title: task.title || task.name,
+          start_time: new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }),
         },
         date: today,
       };

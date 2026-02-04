@@ -1,4 +1,4 @@
-// const API_BASE_URL = "http://10.0.0.54:4000/api";
+// const API_BASE_URL = "http://10.0.0.92:4000/api";
 // const API_BASE_URL = "http://192.168.137.212:4000/api";
 // const API_BASE_URL = "http://172.23.160.1:4000/api";
 // const API_BASE_URL = "http://127.0.0.1:4000/api";
@@ -570,4 +570,30 @@ export const apiClient = {
       throw new Error("Failed to fetch timeline by employee and date");
     return response.json();
   },
+
+  async updateTaskEndTime(employeeId, date, taskTitle, end_time) {
+    const response = await fetch(`${API_BASE_URL}/employee/timeline/end-time`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        employeeId,
+        date,
+        taskTitle,
+        end_time,
+      }),
+    });
+
+    if (!response.ok) {
+      let errorMessage = "Failed to update task end time";
+      try {
+        const error = await response.json();
+        errorMessage = error.message || errorMessage;
+      } catch (e) {
+        errorMessage += ` (${response.status})`;
+      }
+      throw new Error(errorMessage);
+    }
+    return response.json();
+  },
+
 };
