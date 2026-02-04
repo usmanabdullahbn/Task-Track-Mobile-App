@@ -122,16 +122,16 @@ export default function TaskCompelete({ navigation, route }) {
         });
       });
 
-      // Get end time in specified format (hr:min only)
-      const end_time = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
-
       // Append comments
       formData.append('comments', comments);
-      formData.append('actual_end_time', end_time);
+      formData.append('actual_end_time', new Date().toISOString());
       formData.append('status', 'Completed');
 
       // Update the task with photos and comments
       const updatedTask = await apiClient.updateTask(taskId, formData);
+
+      // Get end time in specified format
+      const end_time = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
 
       // Get user/employee info from AsyncStorage
       const userInfo = await AsyncStorage.getItem('userInfo');
