@@ -1,7 +1,18 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, SafeAreaView, Image, Modal, Alert, ActivityIndicator } from "react-native"
+import { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+  SafeAreaView,
+  Image,
+  Modal,
+  Alert,
+  ActivityIndicator,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import BackButton from "../components/BackButton";
@@ -12,24 +23,23 @@ export default function TaskCompelete({ navigation, route }) {
   const taskId = route?.params?.taskId;
   // console.log("Task ID on Start  page", taskId)
 
-
   const [task, setTask] = useState(null);
 
-  const [comments, setComments] = useState("")
-  const [photo, setPhoto] = useState(null)
-  const [photos, setPhotos] = useState([])
-  const [showPhotoOptions, setShowPhotoOptions] = useState(false)
-  const [photoError, setPhotoError] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const [comments, setComments] = useState("");
+  const [photo, setPhoto] = useState(null);
+  const [photos, setPhotos] = useState([]);
+  const [showPhotoOptions, setShowPhotoOptions] = useState(false);
+  const [photoError, setPhotoError] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const fetchTask = async () => {
       if (taskId) {
         try {
-          const storedTasks = await AsyncStorage.getItem('tasks');
+          const storedTasks = await AsyncStorage.getItem("tasks");
           if (storedTasks) {
             const tasks = JSON.parse(storedTasks);
-            const foundTask = tasks.find(t => t._id === taskId);
+            const foundTask = tasks.find((t) => t._id === taskId);
             if (foundTask) {
               setTask(foundTask);
             }
@@ -43,8 +53,8 @@ export default function TaskCompelete({ navigation, route }) {
   }, [taskId]);
 
   const handleRetakePhoto = () => {
-    setShowPhotoOptions(true)
-  }
+    setShowPhotoOptions(true);
+  };
 
   const pickImageFromGallery = async () => {
     try {
@@ -100,7 +110,10 @@ export default function TaskCompelete({ navigation, route }) {
     // Validate photo is required
     if (photos.length === 0) {
       setPhotoError(true);
-      Alert.alert("Photo Required", "Please capture a photo before completing the task");
+      Alert.alert(
+        "Photo Required",
+        "Please capture a photo before completing the task",
+      );
       return;
     }
 
@@ -112,39 +125,54 @@ export default function TaskCompelete({ navigation, route }) {
       // Append all photos with proper naming
       photos.forEach((photoUri, index) => {
         const photoName = generatePhotoName(index);
-        const fileName = photoUri.split('/').pop();
-        const photoType = `image/${fileName.split('.').pop()}`;
-        
-        formData.append('files', {
+        const fileName = photoUri.split("/").pop();
+        const photoType = `image/${fileName.split(".").pop()}`;
+
+        formData.append("files", {
           uri: photoUri,
-          name: `${photoName}.${fileName.split('.').pop()}`,
+          name: `${photoName}.${fileName.split(".").pop()}`,
           type: photoType,
         });
       });
 
       // Append comments
-      formData.append('comments', comments);
-      formData.append('actual_end_time', new Date().toISOString());
-      formData.append('status', 'Completed');
+      formData.append("comments", comments);
+      formData.append("actual_end_time", new Date().toISOString());
+      formData.append("status", "Completed");
 
       // Update the task with photos and comments
       const updatedTask = await apiClient.updateTask(taskId, formData);
 
       // Get end time in specified format
-      const end_time = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+      const end_time = new Date().toLocaleTimeString("en-US", {
+        hour12: false,
+        hour: "2-digit",
+        minute: "2-digit",
+      });
 
       // Get user/employee info from AsyncStorage
-      const userInfo = await AsyncStorage.getItem('userInfo');
-      const user = userInfo ? JSON.parse(userInfo) : null;
-      const employeeId = user?._id;
+      const userData = await AsyncStorage.getItem("user");
+      if (!userData) {
+        console.log("User data not found");
+        setIsStarting(false);
+        return;
+      }
+
+      const user = JSON.parse(userData);
+      const employeeId = user.id || user._id;
 
       // Get current date in YYYY-MM-DD format
-      const currentDate = new Date().toISOString().split('T')[0];
-
+      const currentDate = new Date().toISOString().split("T")[0];
       // Call updateTaskEndTime if employeeId is available
       if (employeeId && task?.title) {
-        await apiClient.updateTaskEndTime(employeeId, currentDate, task.title, end_time);
+        await apiClient.updateTaskEndTime(
+          employeeId,
+          currentDate,
+          task.title,
+          end_time,
+        );
       }
+      console.log(employeeId, currentDate, task.title, end_time);
 
       // Console log the updated task object
       // console.log("Updated Task Object:", updatedTask);
@@ -159,7 +187,7 @@ export default function TaskCompelete({ navigation, route }) {
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -169,7 +197,9 @@ export default function TaskCompelete({ navigation, route }) {
       {task && (
         <View style={styles.taskInfo}>
           <Text style={styles.taskTitle}>{task.title || task.name}</Text>
-          <Text style={styles.taskAsset}>Asset: {task.asset?.name || "N/A"}</Text>
+          <Text style={styles.taskAsset}>
+            Asset: {task.asset?.name || "N/A"}
+          </Text>
         </View>
       )}
 
@@ -187,8 +217,13 @@ export default function TaskCompelete({ navigation, route }) {
             <View>
               {photos.map((photoUri, index) => (
                 <View key={index} style={styles.photoContainer}>
-                  <Image source={{ uri: photoUri }} style={styles.capturedImage} />
-                  <Text style={styles.photoLabel}>{generatePhotoName(index)}</Text>
+                  <Image
+                    source={{ uri: photoUri }}
+                    style={styles.capturedImage}
+                  />
+                  <Text style={styles.photoLabel}>
+                    {generatePhotoName(index)}
+                  </Text>
                 </View>
               ))}
               <TouchableOpacity
@@ -196,17 +231,33 @@ export default function TaskCompelete({ navigation, route }) {
                 onPress={() => setShowPhotoOptions(true)}
               >
                 <Ionicons name="add-circle" size={16} color="#00A73E" />
-                <Text style={styles.changePhotoButtonText}>Add More Photos</Text>
+                <Text style={styles.changePhotoButtonText}>
+                  Add More Photos
+                </Text>
               </TouchableOpacity>
             </View>
           ) : (
             <TouchableOpacity
-              style={[styles.photoPlaceholder, photoError && styles.photoPlaceholderError]}
+              style={[
+                styles.photoPlaceholder,
+                photoError && styles.photoPlaceholderError,
+              ]}
               onPress={() => setShowPhotoOptions(true)}
             >
-              <Ionicons name="camera" size={48} color={photoError ? "#ef4444" : "#d1d5db"} />
-              <Text style={[styles.placeholderText, photoError && styles.placeholderErrorText]}>
-                {photoError ? "Photo is required" : "Tap to capture final photo"}
+              <Ionicons
+                name="camera"
+                size={48}
+                color={photoError ? "#ef4444" : "#d1d5db"}
+              />
+              <Text
+                style={[
+                  styles.placeholderText,
+                  photoError && styles.placeholderErrorText,
+                ]}
+              >
+                {photoError
+                  ? "Photo is required"
+                  : "Tap to capture final photo"}
               </Text>
             </TouchableOpacity>
           )}
@@ -221,7 +272,9 @@ export default function TaskCompelete({ navigation, route }) {
             <View style={styles.modalOverlay}>
               <View style={styles.photoOptionsContainer}>
                 <View style={styles.photoOptionsHeader}>
-                  <Text style={styles.photoOptionsTitle}>Choose Photo Source</Text>
+                  <Text style={styles.photoOptionsTitle}>
+                    Choose Photo Source
+                  </Text>
                   <TouchableOpacity onPress={() => setShowPhotoOptions(false)}>
                     <Ionicons name="close" size={24} color="#1f2937" />
                   </TouchableOpacity>
@@ -251,7 +304,9 @@ export default function TaskCompelete({ navigation, route }) {
                     <Ionicons name="image" size={24} color="#00A73E" />
                   </View>
                   <View style={styles.photoOptionText}>
-                    <Text style={styles.photoOptionTitle}>Choose from Gallery</Text>
+                    <Text style={styles.photoOptionTitle}>
+                      Choose from Gallery
+                    </Text>
                     <Text style={styles.photoOptionDescription}>
                       Select a photo from your device
                     </Text>
@@ -290,7 +345,7 @@ export default function TaskCompelete({ navigation, route }) {
         )}
       </TouchableOpacity>
     </SafeAreaView>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -513,4 +568,4 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#fff",
   },
-})
+});
