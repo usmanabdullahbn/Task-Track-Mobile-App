@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, SafeAreaView, Image, Modal, Alert, ActivityIndicator } from "react-native"
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
+import * as Location from 'expo-location';
 import BackButton from "../components/BackButton";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -135,6 +136,44 @@ export default function TaskStart({ navigation, route }) {
 
       // Console log the updated task object
       // console.log("Updated Task Object:", updatedTask);
+
+      // Get current location for task start
+      let location = null;
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status === 'granted') {
+          location = await Location.getCurrentPositionAsync({});
+        }
+      } catch (locError) {
+        console.error('Failed to get location:', locError);
+      }
+
+      // Start task visit for tracking
+      try {
+        const userData = await AsyncStorage.getItem('user');
+        if (!userData) {
+          console.warn('User data not found for task tracking');
+        } else {
+          const user = JSON.parse(userData);
+          const workerId = user.id || user._id;
+
+          // FIX #8: Improved error handling for task tracking
+          if (!workerId) {
+            console.error('Worker ID not found in user data');
+          } else {
+            const trackingResponse = await apiClient.post('/tracking/task/start', {
+              taskId: String(taskId),
+              workerId: String(workerId),
+              latitude: location?.coords.latitude || 0,
+              longitude: location?.coords.longitude || 0
+            });
+            console.log('Task tracking started:', trackingResponse);
+          }
+        }
+      } catch (trackingError) {
+        console.error('Failed to start task tracking:', trackingError.message);
+        // Don't block task start if tracking fails
+      }
 
       Alert.alert("Success", "Task photos and comments saved successfully");
 

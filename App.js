@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Platform, SafeAreaView, StatusBar, StyleSheet } from "react-native";
 
 // Screens
@@ -24,6 +24,9 @@ import TaskDetail from "./src/order/Task";
 import TaskVerification from "./src/task/TaskVerification";
 import TaskStart from "./src/task/TaskStart";
 import TaskCompelete from "./src/task/TaskCompelete";
+
+// Location tracking
+import { startLocationTracking, stopLocationTracking } from "./src/lib/locationTracker";
 
 // Navigators
 const Tab = createBottomTabNavigator();
@@ -128,6 +131,15 @@ function MainTabs({ setIsLoggedIn }) {
 // ✅ Root App
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    // FIX #1: Only start tracking if user is actually logged in
+    if (isLoggedIn) {
+      startLocationTracking().catch(err => console.error('Failed to start tracking:', err));
+    } else {
+      stopLocationTracking().catch(err => console.error('Failed to stop tracking:', err));
+    }
+  }, [isLoggedIn]);
 
   return (
     <SafeAreaView style={styles.safeArea}>

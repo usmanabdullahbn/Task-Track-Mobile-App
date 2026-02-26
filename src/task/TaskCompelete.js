@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
+import * as Location from 'expo-location';
 import BackButton from "../components/BackButton";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { apiClient } from "../lib/api-client";
@@ -143,6 +144,42 @@ export default function TaskCompelete({ navigation, route }) {
       // Update the task with photos and comments
       const updatedTask = await apiClient.updateTask(taskId, formData);
 
+      // Get current location for task end
+      let location = null;
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status === 'granted') {
+          location = await Location.getCurrentPositionAsync({});
+        }
+      } catch (locError) {
+        console.error('Failed to get location:', locError);
+      }
+
+      // End task visit for tracking
+      try {
+        const userData = await AsyncStorage.getItem('user');
+        if (!userData) {
+          console.warn('User data not found for task tracking');
+        } else {
+          const user = JSON.parse(userData);
+          const workerId = user.id || user._id;
+
+          // FIX #9: Improved error handling for task end tracking
+          if (!workerId) {
+            console.error('Worker ID not found in user data');
+          } else {
+            const trackingResponse = await apiClient.post('/tracking/task/end', {
+              taskId: String(taskId),
+              workerId: String(workerId)
+            });
+            console.log('Task tracking ended:', trackingResponse);
+          }
+        }
+      } catch (trackingError) {
+        console.error('Failed to end task tracking:', trackingError.message);
+        // Don't block task completion if tracking fails
+      }
+
       // Get end time in specified format
       const end_time = new Date().toLocaleTimeString("en-US", {
         hour12: false,
@@ -153,8 +190,8 @@ export default function TaskCompelete({ navigation, route }) {
       // Get user/employee info from AsyncStorage
       const userData = await AsyncStorage.getItem("user");
       if (!userData) {
-        console.log("User data not found");
-        setIsStarting(false);
+        console.error("User data not found");
+        setIsLoading(false);
         return;
       }
 

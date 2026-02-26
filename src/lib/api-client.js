@@ -1,10 +1,10 @@
 // const API_BASE_URL = "http://10.0.0.43:4000/api";
 // const API_BASE_URL = "http://192.168.137.212:4000/api";
 // const API_BASE_URL = "http://172.23.160.1:4000/api";
-// const API_BASE_URL = "http://127.0.0.1:4000/api";
+const API_BASE_URL = "http://192.168.0.101:4000/api";
 // const API_BASE_URL = "http://192.168.10.10:4000/api"; // Qatar IP
-const API_BASE_URL =
-  "https://immediate-cultures-yale-interface.trycloudflare.com/api"; // Qatar live IP
+// const API_BASE_URL =
+  // "https://immediate-cultures-yale-interface.trycloudflare.com/api"; // Qatar live IP
 // const API_BASE_URL = "http://localhost:4000/api";
 // const API_BASE_URL = "https://backend-task-track.onrender.com/api";
 
@@ -596,4 +596,24 @@ export const apiClient = {
     return response.json();
   },
 
+  // General post method
+  async post(endpoint, data) {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      let errorMessage = `Failed to post to ${endpoint}`;
+      try {
+        const error = await response.json();
+        errorMessage = error.message || errorMessage;
+      } catch (e) {
+        errorMessage += ` (${response.status})`;
+      }
+      throw new Error(errorMessage);
+    }
+    return response.json();
+  },
 };
