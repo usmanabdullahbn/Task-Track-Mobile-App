@@ -36,6 +36,9 @@ TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
       const timestamp = new Date();
       const locationName = `${location.coords.latitude.toFixed(4)}, ${location.coords.longitude.toFixed(4)}`; // Default: coordinates
 
+      // send local date so backend can group sessions correctly
+      // use device local time (en-CA format) rather than UTC
+      const localDate = timestamp.toLocaleDateString('en-CA');
       const response = await apiClient.post("/tracking/location", {
         workerId: String(workerId),
         latitude: location.coords.latitude,
@@ -43,7 +46,9 @@ TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
         speed: location.coords.speed || 0,
         locationName: locationName,
         timestamp: timestamp.toISOString(),
-        timeFormatted: timestamp.toLocaleTimeString(), // Human-readable time
+        date: localDate,
+        // always send 24‑hour formatted time to server
+        timeFormatted: timestamp.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }),
       });
 
       console.log("Location saved successfully", response);
@@ -57,6 +62,13 @@ TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
 // Start location tracking
 export const startLocationTracking = async () => {
   try {
+    // if the task is already running, nothing to do
+    const already = await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK_NAME);
+    if (already) {
+      console.log("Location tracking already active");
+      return;
+    }
+
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== "granted") {
       throw new Error("Location permission not granted");
@@ -70,9 +82,14 @@ export const startLocationTracking = async () => {
 
     await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
       accuracy: Location.Accuracy.High,
-      timeInterval: 60000, // 1 minute
-      distanceInterval: 50, // 50 meters
+      timeInterval: 30000, // 20 seconds
+      distanceInterval: 20, // 20 meters
       showsBackgroundLocationIndicator: true,
+      // required on Android to keep the task alive
+      foregroundService: {
+        notificationTitle: "Worker Tracking",
+        notificationBody: "Tracking location in background",
+      },
     });
 
     console.log("Location tracking started");

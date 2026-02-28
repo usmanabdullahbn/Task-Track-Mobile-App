@@ -1,11 +1,12 @@
 // const API_BASE_URL = "http://10.0.0.43:4000/api";
 // const API_BASE_URL = "http://192.168.137.212:4000/api";
-// const API_BASE_URL = "http://192.168.1.36:4000/api";
+const API_BASE_URL = "http://192.168.0.106:4000/api";
 // const API_BASE_URL = "http://192.168.0.101:4000/api";
 // const API_BASE_URL = "http://192.168.10.10:4000/api"; // Qatar IP
 // const API_BASE_URL =
+//   "https://immediate-cultures-yale-interface.trycloudflare.com/api"; // Qatar live IP
 // const API_BASE_URL = "http://localhost:4000/api";
-const API_BASE_URL = "https://backend-task-track.onrender.com/api";
+// const API_BASE_URL = "https://backend-task-track.onrender.com/api";
 
 export const TASK_STATUS = ["Todo", "In Progress", "Completed", "On Hold"];
 
