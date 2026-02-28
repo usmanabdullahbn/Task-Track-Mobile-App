@@ -4,6 +4,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useState, useEffect } from "react";
 import { Platform, SafeAreaView, StatusBar, StyleSheet } from "react-native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Screens
 import WorkOrderDetail from "./src/order/WorkOrder";
@@ -135,7 +136,14 @@ export default function App() {
   useEffect(() => {
     // FIX #1: Only start tracking if user is actually logged in
     if (isLoggedIn) {
-      startLocationTracking().catch(err => console.error('Failed to start tracking:', err));
+      // double check that user data exists in storage before we begin
+      AsyncStorage.getItem('user').then(userData => {
+        if (userData) {
+          startLocationTracking().catch(err => console.error('Failed to start tracking:', err));
+        } else {
+          console.warn('Login state true but no user record yet, delaying tracking');
+        }
+      });
     } else {
       stopLocationTracking().catch(err => console.error('Failed to stop tracking:', err));
     }

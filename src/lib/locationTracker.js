@@ -83,6 +83,13 @@ export const startLocationTracking = async () => {
 // Stop location tracking
 export const stopLocationTracking = async () => {
   try {
+    // only attempt to stop if the task was actually running
+    const hasStarted = await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK_NAME);
+    if (!hasStarted) {
+      console.log('Location tracking was not active, nothing to stop');
+      return;
+    }
+
     await Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
     console.log('Location tracking stopped');
   } catch (error) {

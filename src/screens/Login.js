@@ -71,10 +71,12 @@ export default function LoginScreen({ setIsLoggedIn, navigation }) {
       }
 
       Alert.alert("Success", "Login successful!");
-      setIsLoggedIn(true);
-
+      // store credentials first so background tracker can read them when it starts
       await AsyncStorage.setItem("user", JSON.stringify(data.user));
       await AsyncStorage.setItem("token", data.token || "");
+      
+      // now update login state; App.useEffect will kick off location tracking
+      setIsLoggedIn(true);
     } catch (error) {
       setLoading(false);
       Alert.alert("Error", error.message || "Failed to connect to server");
