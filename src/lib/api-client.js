@@ -1,10 +1,10 @@
 // const API_BASE_URL = "http://10.0.0.43:4000/api";
 // const API_BASE_URL = "http://192.168.137.212:4000/api";
-const API_BASE_URL = "http://192.168.0.106:4000/api";
+// const API_BASE_URL = "http://192.168.0.106:4000/api";
 // const API_BASE_URL = "http://192.168.0.101:4000/api";
 // const API_BASE_URL = "http://192.168.10.10:4000/api"; // Qatar IP
-// const API_BASE_URL =
-//   "https://immediate-cultures-yale-interface.trycloudflare.com/api"; // Qatar live IP
+const API_BASE_URL =
+  "https://immediate-cultures-yale-interface.trycloudflare.com/api"; // Qatar live IP
 // const API_BASE_URL = "http://localhost:4000/api";
 // const API_BASE_URL = "https://backend-task-track.onrender.com/api";
 
@@ -571,16 +571,17 @@ export const apiClient = {
     return response.json();
   },
 
-  async updateTaskEndTime(employeeId, date, taskTitle, end_time) {
+  async updateTaskEndTime(employeeId, date, taskTitle, end_time, left_time, left_lat, left_lng) {
+    const body = { employeeId, date, taskTitle };
+    if (end_time !== undefined) body.end_time = end_time;
+    if (left_time !== undefined) body.left_time = left_time;
+    if (left_lat !== undefined) body.left_lat = left_lat;
+    if (left_lng !== undefined) body.left_lng = left_lng;
+
     const response = await fetch(`${API_BASE_URL}/employee/timeline/end-time`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        employeeId,
-        date,
-        taskTitle,
-        end_time,
-      }),
+      body: JSON.stringify(body),
     });
 
     if (!response.ok) {
@@ -597,6 +598,25 @@ export const apiClient = {
   },
 
   // General post method
+  async leaveTask(workerId, taskId, latitude, longitude) {
+    const response = await fetch(`${API_BASE_URL}/tracking/task/leave`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ workerId, taskId, latitude, longitude }),
+    });
+    if (!response.ok) {
+      let errorMessage = "Failed to report task leave";
+      try {
+        const error = await response.json();
+        errorMessage = error.message || errorMessage;
+      } catch (e) {
+        errorMessage += ` (${response.status})`;
+      }
+      throw new Error(errorMessage);
+    }
+    return response.json();
+  },
+
   async post(endpoint, data) {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: "POST",
